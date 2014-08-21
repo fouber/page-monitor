@@ -45,7 +45,7 @@ function mergeSettings(settings){
                 'text-indent', 'text-shadow', 'vertical-align',
                 'visibility', 'position'
             ],
-            attributeFilters: [ 'id' ],
+            attributeFilters: [ 'id' ]
         },
         diff: {
             include: [],

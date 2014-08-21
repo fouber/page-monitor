@@ -101,12 +101,18 @@ function createPage(url, options, onload){
             window.Audio = Image;
         });
     };
+    page.onConsoleMessage = function(msg){
+        if(msg.substring(0, TOKEN.length) === TOKEN){
+            // TODO parse
+            console.log('console: ' + msg.substring(TOKEN.length));
+        }
+    };
     page.open(url);
     return page;
 }
 
 createPage(url, data, function(page){
-    var res = page.evaluate(diff, TOKEN);
-    console.log('res: ' + res);
+    var res = page.evaluate(diff, TOKEN, data);
+    console.log('res: ' + JSON.stringify(res));
     page.render('test.png');
 });
