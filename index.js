@@ -5,10 +5,28 @@ var path = require('path');
 var Url = require('url');
 var util = require("util");
 var events = require("events");
-var DEFAULT_DATA_DIRNAME = path.join(process.cwd(), '.page-monitor');
+var DEFAULT_DATA_DIRNAME = process.cwd();
 var PHANTOMJS_SCRIPT_DIR = path.join(__dirname, 'phantomjs');
 var PHANTOMJS_SCRIPT_FILE = path.join(PHANTOMJS_SCRIPT_DIR, 'index.js');
 var _ = require('./util.js');
+var _exists = fs.existsSync || path.existsSync;
+
+function mkdirp(path, mode){
+    if (typeof mode === 'undefined') {
+        //511 === 0777
+        mode = 511 & (~process.umask());
+    }
+    if(_exists(path)) return;
+    path.split('/').reduce(function(prev, next) {
+        if(prev && !_exists(prev)) {
+            fs.mkdirSync(prev, mode);
+        }
+        return prev + '/' + next;
+    });
+    if(!_exists(path)) {
+        fs.mkdirSync(path, mode);
+    }
+}
 
 function mergeSettings(settings){
     var defaultSettings = {
@@ -75,7 +93,8 @@ function mergeSettings(settings){
             ignoreText: false
         },
         path: {
-            dirname: path.join(process.cwd(), DEFAULT_DATA_DIRNAME)
+            root: DEFAULT_DATA_DIRNAME,
+            format: '{hostname}/{port}/{pathname}/{query}{hash}'
         }
     };
     return _.merge(defaultSettings, settings || {});
@@ -85,19 +104,32 @@ function phantomjs(args){
 
 }
 
+function escapePath(path){
+    if(path === '/'){
+        return '-';
+    } else {
+        return path.replace(/^\//, '').replace(/^\.|[\\\/:*?"<>|]/g, '-');
+    }
+}
+
 var Monitor = function(url, options){
     events.EventEmitter.call(this);
     this.url = url;
-    this.options = mergeSettings(options);
-    this.options.url = Url.parse(url);
     this.running = false;
+    url = Url.parse(url);
+    options = mergeSettings(options);
+    options.url = url;
+    var pth = [ options.path.root || DEFAULT_DATA_DIRNAME ];
+    String(options.path.format).split('/').forEach(function(item){
+        pth.push(item.replace(/\{(\w+)\}/g, function(m, $1){
+            return escapePath((url[$1] || ''));
+        }));
+    });
+    options.path.dir = path.join.apply(path, pth);
+    this.options = options;
 };
 
 util.inherits(Monitor, events.EventEmitter);
-
-Monitor.prototype.getPath = function(filename){
-
-};
 
 Monitor.prototype.getData = function(path){
     if(is(path, 'Date')){

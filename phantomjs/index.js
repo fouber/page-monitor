@@ -12,6 +12,7 @@ phantom.onError = function(msg, trace) {
 
 var system = require('system');
 var webpage = require('webpage');
+var fs = require('fs');
 var _ = require('../util.js');
 var url = system.args[1];
 var data = JSON.parse(system.args[2]);
@@ -112,7 +113,6 @@ function createPage(url, options, onload){
 }
 
 createPage(url, data, function(page){
-    var res = page.evaluate(diff, TOKEN, data);
-
-    page.render('test.png');
+    // TODO
+    // var res = page.evaluate(diff, TOKEN, data);
 });

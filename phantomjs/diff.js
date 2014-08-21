@@ -16,8 +16,6 @@ module.exports = function(TOKEN, data){
         console.log(TOKEN + args.join(' '));
     };
 
-    log('token:', TOKEN);
-
     // diff kernel
 
     // walk settings
@@ -328,7 +326,6 @@ module.exports = function(TOKEN, data){
         });
         return removed;
     }
-
     var tree = walk(document.querySelector(diff.root || 'body'));
     var ret = {};
     ret.tree = JSON.parse(JSON.stringify(tree));
