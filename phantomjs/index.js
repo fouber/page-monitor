@@ -113,6 +113,6 @@ function createPage(url, options, onload){
 
 createPage(url, data, function(page){
     var res = page.evaluate(diff, TOKEN, data);
-    console.log('res: ' + JSON.stringify(res));
+
     page.render('test.png');
 });

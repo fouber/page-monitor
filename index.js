@@ -74,7 +74,7 @@ function mergeSettings(settings){
             },
             ignoreText: false
         },
-        data: {
+        path: {
             dirname: path.join(process.cwd(), DEFAULT_DATA_DIRNAME)
         }
     };
