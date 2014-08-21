@@ -11,7 +11,7 @@ module.exports = function(TOKEN, data){
                     value = JSON.stringify(value);
                     break;
             }
-            args.push(value);
+            args.push(String(value));
         }
         console.log(TOKEN + args.join(' '));
     };
@@ -28,11 +28,14 @@ module.exports = function(TOKEN, data){
     var CHANGE_STYLE = {};
     CHANGE_STYLE.ADD = data.diff.changeStyle.add;
     CHANGE_STYLE.REMOVE = data.diff.changeStyle.remove;
-    CHANGE_STYLE.text = data.diff.changeStyle.text;
-    CHANGE_STYLE.textAdd = data.diff.changeStyle.textAdd;
+    CHANGE_STYLE.STYLE = data.diff.changeStyle.style;
+    CHANGE_STYLE.TEXT = data.diff.changeStyle.text;
+    CHANGE_STYLE.TEXT_ADD = data.diff.changeStyle.textAdd;
 
     // if ignore text change
     var IGNORE_TEXT = data.diff.ignoreText;
+
+    var CHANGE_TYPE = data.diff.changeType;
 
     // reg
     var invisibleElementReg = new RegExp('^(' + INVISIBLE_ELEMENT.join('|') + ')$', 'i');
@@ -330,8 +333,12 @@ module.exports = function(TOKEN, data){
     var ret = {};
     ret.tree = JSON.parse(JSON.stringify(tree));
     if(data.diff.last){
-        var result = diff(data.diff.last, tree);
-        ret.removed = mark(result);
+        var result = ret.diff = diff(data.diff.last, tree);
+        if(result.length){
+            window[TOKEN] = function(){
+                return mark(result);
+            };
+        }
     }
     return ret;
 };

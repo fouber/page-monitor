@@ -24,6 +24,13 @@ var TOKEN =  (function unique(){
     });
 })();
 
+data.diff.changeType = {
+    ADD: 'add',
+    REMOVE: 'remove',
+    STYLE: 'style',
+    TEXT: 'text'
+};
+
 function settings(page, options){
     _.map(options, function(key, value){
         if(key === 'settings'){
@@ -113,6 +120,37 @@ function createPage(url, options, onload){
 }
 
 createPage(url, data, function(page){
-    // TODO
-    // var res = page.evaluate(diff, TOKEN, data);
+    var now = Date.now();
+    var dir = data.path.dir + '/' + now;
+    data.diff.last = JSON.parse(fs.read('/Users/fouber/work/uc/monitor/test/news.baidu.com/-/1408620922112/tree.json')).tree;
+    var res = page.evaluate(diff, TOKEN, data);
+    var hasDiff = data.diff.last && res.diff.length;
+    if(!data.diff.last || hasDiff){
+        if(fs.makeDirectory(dir)){
+            page.render(dir + '/screenshot.png');
+            fs.write(dir + '/tree.json', JSON.stringify({
+                time: now,
+                utc: String(new Date),
+                url: url,
+                settings: data,
+                tree: res.tree
+            }));
+            fs.write(data.path.dir + '/latest.log', now);
+            if(data.diff.last){
+                var removed = page.evaluate(function(token){
+                    return window[token]();
+                }, TOKEN);
+                var rect = res.tree.rect;
+                page.clipRect = {
+                    x: rect[0],
+                    y: rect[1],
+                    width: rect[2],
+                    height: rect[3]
+                };
+                page.render(dir + '/diff.png');
+            }
+        } else {
+            console.log('ERROR: unable to make directory[' + dir + ']');
+        }
+    }
 });

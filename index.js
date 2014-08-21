@@ -126,6 +126,9 @@ var Monitor = function(url, options){
         }));
     });
     options.path.dir = path.join.apply(path, pth);
+    if(!fs.existsSync(options.path.dir)){
+        mkdirp(options.path.dir);
+    }
     this.options = options;
 };
 
