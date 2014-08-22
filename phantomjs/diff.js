@@ -22,7 +22,7 @@ module.exports = function(TOKEN, data){
     var INVISIBLE_ELEMENT = data.walk.invisibleElements;
     var IGNORE_CHILDREN_ELEMENT = data.walk.ignoreChildrenElements;
     var STYLE_FILTERS = data.walk.styleFilters;
-    var ATTR_FILTERS = data.walk.styleFilters;
+    var ATTR_FILTERS = data.walk.attributeFilters;
 
     // diff settings
     var CHANGE_STYLE = {};

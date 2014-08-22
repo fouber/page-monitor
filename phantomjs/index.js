@@ -140,7 +140,6 @@ createPage(url, data, function(page){
             page.render(dir + '/' + SCREENSHOT_FILENAME);
             fs.write(dir + '/' + INFO_FILENAME, JSON.stringify({
                 time: now,
-                utc: String(new Date),
                 url: url,
                 settings: data,
                 tree: res.tree

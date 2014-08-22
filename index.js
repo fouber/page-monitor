@@ -76,8 +76,10 @@ function mergeSettings(settings){
                 'visibility', 'position'
             ],
             attributeFilters: [ 'id' ],
-            includeSelector: null,
-            excludeSelector: null
+            includeSelectors: [],
+            excludeSelectors: [],
+            ignoreChildrenSelectors: [],
+            root: 'body'
         },
         diff: {
             changeStyle: {
@@ -153,7 +155,6 @@ var Monitor = function(url, options){
         options.path.root || DEFAULT_DATA_DIRNAME,
         format(options.path.format, url, Url.parse(url))
     );
-    console.log(options.path.dir);
     if(!fs.existsSync(options.path.dir)){
         mkdirp(options.path.dir);
     }
