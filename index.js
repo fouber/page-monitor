@@ -28,6 +28,18 @@ function mkdirp(path, mode){
     }
 }
 
+function base64(data){
+    if(data instanceof Buffer){
+        //do nothing for quickly determining.
+    } else if(data instanceof Array){
+        data = new Buffer(data);
+    } else {
+        //convert to string.
+        data = new Buffer(String(data || ''));
+    }
+    return data.toString('base64');
+}
+
 function mergeSettings(settings){
     var defaultSettings = {
         page: {
@@ -63,11 +75,11 @@ function mergeSettings(settings){
                 'text-indent', 'text-shadow', 'vertical-align',
                 'visibility', 'position'
             ],
-            attributeFilters: [ 'id' ]
+            attributeFilters: [ 'id' ],
+            includeSelector: null,
+            excludeSelector: null
         },
         diff: {
-            include: [],
-            exclude: [],
             changeStyle: {
                 add: {
                     title: '新增',
@@ -94,7 +106,10 @@ function mergeSettings(settings){
         },
         path: {
             root: DEFAULT_DATA_DIRNAME,
-            format: '{hostname}/{port}/{pathname}/{query}{hash}'
+            // format: '{hostname}/{port}/{pathname}/{query}{hash}'
+            format: function(url, opt){
+                return opt.hostname + (opt.port ? '-' + opt.port : '') + '/' + base64(opt.path);
+            }
         }
     };
     return _.merge(defaultSettings, settings || {});
@@ -112,20 +127,33 @@ function escapePath(path){
     }
 }
 
+function format(pattern, url, opt){
+    switch (typeof pattern){
+        case 'function':
+            return pattern(url, opt);
+        case 'string':
+            var pth = [];
+            String(pattern).split('/').forEach(function(item){
+                pth.push(item.replace(/\{(\w+)\}/g, function(m, $1){
+                    return escapePath((opt[$1] || ''));
+                }));
+            });
+            return pth.join('/');
+        default :
+            throw new Error('unsupport format');
+    }
+}
+
 var Monitor = function(url, options){
     events.EventEmitter.call(this);
-    this.url = url;
-    this.running = false;
-    url = Url.parse(url);
     options = mergeSettings(options);
-    options.url = url;
-    var pth = [ options.path.root || DEFAULT_DATA_DIRNAME ];
-    String(options.path.format).split('/').forEach(function(item){
-        pth.push(item.replace(/\{(\w+)\}/g, function(m, $1){
-            return escapePath((url[$1] || ''));
-        }));
-    });
-    options.path.dir = path.join.apply(path, pth);
+    this.url = options.url = url;
+    this.running = false;
+    options.path.dir = path.join(
+        options.path.root || DEFAULT_DATA_DIRNAME,
+        format(options.path.format, url, Url.parse(url))
+    );
+    console.log(options.path.dir);
     if(!fs.existsSync(options.path.dir)){
         mkdirp(options.path.dir);
     }
@@ -133,15 +161,6 @@ var Monitor = function(url, options){
 };
 
 util.inherits(Monitor, events.EventEmitter);
-
-Monitor.prototype.getData = function(path){
-    if(is(path, 'Date')){
-        path = path.getTime();
-    } else {
-        path = String(path);
-    }
-
-};
 
 Monitor.prototype.diff = function(data, callback){
     if(this.running) return;
@@ -167,11 +186,6 @@ Monitor.prototype.diff = function(data, callback){
         self.running = false;
         callback();
     });
-    // TODO
-};
-
-Monitor.prototype.save = function(callback){
-
 };
 
 module.exports = Monitor;

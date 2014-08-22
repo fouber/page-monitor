@@ -119,23 +119,33 @@ function createPage(url, options, onload){
     return page;
 }
 
+var LATEST_LOG_FILENAME = 'latest.log';
+var SCREENSHOT_FILENAME = 'screenshot.png';
+var DIFF_FILENAME = 'diff.png';
+var INFO_FILENAME = 'info.json';
+
 createPage(url, data, function(page){
     var now = Date.now();
     var dir = data.path.dir + '/' + now;
-    data.diff.last = JSON.parse(fs.read('/Users/fouber/work/uc/monitor/test/news.baidu.com/-/1408620922112/tree.json')).tree;
+    var last = data.path.dir + '/' + LATEST_LOG_FILENAME;
+    if(fs.exists(last)){
+        last = fs.read(last).trim();
+        last = data.path.dir + '/' + last + '/' + INFO_FILENAME;
+        data.diff.last = JSON.parse(fs.read(last)).tree;
+    }
     var res = page.evaluate(diff, TOKEN, data);
     var hasDiff = data.diff.last && res.diff.length;
     if(!data.diff.last || hasDiff){
         if(fs.makeDirectory(dir)){
-            page.render(dir + '/screenshot.png');
-            fs.write(dir + '/tree.json', JSON.stringify({
+            page.render(dir + '/' + SCREENSHOT_FILENAME);
+            fs.write(dir + '/' + INFO_FILENAME, JSON.stringify({
                 time: now,
                 utc: String(new Date),
                 url: url,
                 settings: data,
                 tree: res.tree
             }));
-            fs.write(data.path.dir + '/latest.log', now);
+            fs.write(data.path.dir + '/' + LATEST_LOG_FILENAME, now);
             if(data.diff.last){
                 var removed = page.evaluate(function(token){
                     return window[token]();
@@ -147,7 +157,7 @@ createPage(url, data, function(page){
                     width: rect[2],
                     height: rect[3]
                 };
-                page.render(dir + '/diff.png');
+                page.render(dir + '/' + DIFF_FILENAME);
             }
         } else {
             console.log('ERROR: unable to make directory[' + dir + ']');

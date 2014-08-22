@@ -250,6 +250,7 @@ module.exports = function(TOKEN, data){
         div.style.color = '#fff';
         div.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.4)';
         div.style.textShadow = '0 1px 1px rgba(0, 0, 0, 0.7)';
+        div.style.zIndex = 2147483647;
         if(options.title){
             var span = document.createElement('x-diff-span');
             span.innerHTML = options.title;
