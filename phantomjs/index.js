@@ -47,7 +47,7 @@ function settings(page, options){
 function createPage(url, options, onload){
     var page = webpage.create();
     var timer, count = 0,
-        delay = options.render.delay || 500;
+        delay = options.render.delay || 1000;
     var callback = function(){
         clearTimeout(timer);
         if(count === 0){
