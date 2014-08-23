@@ -26,10 +26,10 @@ var TOKEN =  (function unique(){
 })();
 
 data.diff.changeType = {
-    ADD:    1,
-    REMOVE: 2,
-    STYLE:  4,
-    TEXT:   8
+    ADD:    1,  // 0001
+    REMOVE: 2,  // 0010
+    STYLE:  4,  // 0100
+    TEXT:   8   // 1000
 };
 
 function settings(page, options){
@@ -47,7 +47,7 @@ function settings(page, options){
 function createPage(url, options, onload){
     var page = webpage.create();
     var timer, count = 0,
-        delay = options.render.delay || 100;
+        delay = options.render.delay || 500;
     var callback = function(){
         clearTimeout(timer);
         if(count === 0){
@@ -130,18 +130,17 @@ function render(page, rect, path){
         left  : rect[0],
         top   : rect[1],
         width : rect[2],
-        height: rect[3]
+        height: rect[3] || page.viewportSize.height
     };
-    console.log(JSON.stringify(rect));
-    console.log(path);
     page.render(path);
 }
 
 function mark(left, right, leftDir, rightDir, callback){
     var ret = diff(left, right, data.diff);
     var root = data.path.dir;
+    console.log(root);
     ret.forEach(function(item){
-        console.log('type: ' + item.type + '\tname: ' + item.node.name);
+        console.log('type: ' + item.type.toString(2) + '\tname: ' + item.node.name);
     });
     callback();
 }
