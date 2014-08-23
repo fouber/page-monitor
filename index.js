@@ -75,7 +75,7 @@ function mergeSettings(settings){
                 'text-indent', 'text-shadow', 'vertical-align',
                 'visibility', 'position'
             ],
-            attributeFilters: [ 'id' ],
+            attributeFilters: [ 'id', 'class' ],
             includeSelectors: [],
             excludeSelectors: [],
             ignoreTextSelectors: [],
@@ -107,7 +107,7 @@ function mergeSettings(settings){
             }
         },
         render: {
-            delay: 500
+            delay: 1000
         },
         path: {
             root: DEFAULT_DATA_DIRNAME,

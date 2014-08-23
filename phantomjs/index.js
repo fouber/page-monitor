@@ -47,7 +47,7 @@ function settings(page, options){
 function createPage(url, options, onload){
     var page = webpage.create();
     var timer, count = 0,
-        delay = options.render.delay || 1000;
+        delay = options.render.delay;
     var callback = function(){
         clearTimeout(timer);
         if(count === 0){
@@ -126,11 +126,12 @@ var INFO_FILENAME = 'info.json';
 var TREE_FILENAME = 'tree.json';
 
 function render(page, rect, path){
+    console.log(JSON.stringify(rect));
     page.clipRect = {
         left  : rect[0],
         top   : rect[1],
         width : rect[2],
-        height: rect[3] || page.viewportSize.height
+        height: rect[3]
     };
     page.render(path);
 }
@@ -142,7 +143,7 @@ function mark(left, right, leftDir, rightDir, callback){
     ret.forEach(function(item){
         console.log('type: ' + item.type.toString(2) + '\tname: ' + item.node.name);
     });
-    callback();
+    callback(ret);
 }
 
 createPage(url, data, function(page){
@@ -178,7 +179,10 @@ createPage(url, data, function(page){
 
             // diff
             if(latest){
-                mark(JSON.parse(latest), res, latestDir, dir, function(){
+                mark(JSON.parse(latest), res, latestDir, dir, function(ret){
+                    if(ret.length === 0){
+                        console.log('remove [' + dir + '] ' + fs.removeTree(dir));
+                    }
                     phantom.exit();
                 });
                 return false;
