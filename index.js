@@ -42,6 +42,7 @@ function base64(data){
 
 function mergeSettings(settings){
     var defaultSettings = {
+        cli: {},
         page: {
             viewportSize: {
                 width: 320,
@@ -52,7 +53,6 @@ function mergeSettings(settings){
                 userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 7_0 like Mac OS X; en-us) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11A465 Safari/9537.53'
             }
         },
-        cli: {},
         walk: {
             invisibleElements : [
                 'applet', 'area', 'audio', 'base', 'basefont',
@@ -78,6 +78,7 @@ function mergeSettings(settings){
             attributeFilters: [ 'id' ],
             includeSelectors: [],
             excludeSelectors: [],
+            ignoreTextSelectors: [],
             ignoreChildrenSelectors: [],
             root: 'body'
         },
@@ -103,8 +104,10 @@ function mergeSettings(settings){
                 },
                 text: {},
                 textAdd: {}
-            },
-            ignoreText: false
+            }
+        },
+        render: {
+            delay: 500
         },
         path: {
             root: DEFAULT_DATA_DIRNAME,

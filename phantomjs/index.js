@@ -17,6 +17,7 @@ var _ = require('../util.js');
 var url = system.args[1];
 var data = JSON.parse(system.args[2]);
 var diff = require('./diff.js');
+var walk = require('./walk.js');
 var TOKEN =  (function unique(){
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
         var r = Math.random()*16 | 0;
@@ -25,10 +26,10 @@ var TOKEN =  (function unique(){
 })();
 
 data.diff.changeType = {
-    ADD: 'add',
-    REMOVE: 'remove',
-    STYLE: 'style',
-    TEXT: 'text'
+    ADD:    1,
+    REMOVE: 2,
+    STYLE:  4,
+    TEXT:   8
 };
 
 function settings(page, options){
@@ -45,9 +46,8 @@ function settings(page, options){
 
 function createPage(url, options, onload){
     var page = webpage.create();
-    var timer,
-        count = 0,
-        delay = options.delay || 1000;
+    var timer, count = 0,
+        delay = options.render.delay || 100;
     var callback = function(){
         clearTimeout(timer);
         if(count === 0){
@@ -123,40 +123,66 @@ var LATEST_LOG_FILENAME = 'latest.log';
 var SCREENSHOT_FILENAME = 'screenshot.png';
 var DIFF_FILENAME = 'diff.png';
 var INFO_FILENAME = 'info.json';
+var TREE_FILENAME = 'tree.json';
+
+function render(page, rect, path){
+    page.clipRect = {
+        left  : rect[0],
+        top   : rect[1],
+        width : rect[2],
+        height: rect[3]
+    };
+    console.log(JSON.stringify(rect));
+    console.log(path);
+    page.render(path);
+}
+
+function mark(left, right, leftDir, rightDir, callback){
+    var ret = diff(left, right, data.diff);
+    var root = data.path.dir;
+    ret.forEach(function(item){
+        console.log('type: ' + item.type + '\tname: ' + item.node.name);
+    });
+    callback();
+}
 
 createPage(url, data, function(page){
-    var now = Date.now();
-    var dir = data.path.dir + '/' + now;
-    var last = data.path.dir + '/' + LATEST_LOG_FILENAME;
-    if(fs.exists(last)){
-        last = fs.read(last).trim();
-        last = data.path.dir + '/' + last + '/' + INFO_FILENAME;
-        data.diff.last = JSON.parse(fs.read(last)).tree;
+    // walk
+    var res = page.evaluate(walk, TOKEN, data.walk);
+    var json = JSON.stringify(res);
+
+    // latest
+    var latest, latestDir, latestFile = data.path.dir + '/' + LATEST_LOG_FILENAME;
+    if(fs.exists(latestFile)){
+        latest = fs.read(latestFile).trim();
+        latestDir = data.path.dir + '/' + latest;
+        latest = latestDir + '/' + TREE_FILENAME;
+        latest = fs.read(latest);
     }
-    var res = page.evaluate(diff, TOKEN, data);
-    var hasDiff = data.diff.last && res.diff.length;
-    if(!data.diff.last || hasDiff){
+
+    // save
+    if(latest && latest === json){
+        // do nothing
+    } else {
+        var now = Date.now();
+        var dir = data.path.dir + '/' + now;
         if(fs.makeDirectory(dir)){
-            page.render(dir + '/' + SCREENSHOT_FILENAME);
+            // save current
+            render(page, res.rect, dir + '/' + SCREENSHOT_FILENAME);
+            fs.write(dir + '/' + TREE_FILENAME, json);
             fs.write(dir + '/' + INFO_FILENAME, JSON.stringify({
                 time: now,
                 url: url,
-                settings: data,
-                tree: res.tree
+                settings: data
             }));
             fs.write(data.path.dir + '/' + LATEST_LOG_FILENAME, now);
-            if(data.diff.last){
-                var removed = page.evaluate(function(token){
-                    return window[token]();
-                }, TOKEN);
-                var rect = res.tree.rect;
-                page.clipRect = {
-                    x: rect[0],
-                    y: rect[1],
-                    width: rect[2],
-                    height: rect[3]
-                };
-                page.render(dir + '/' + DIFF_FILENAME);
+
+            // diff
+            if(latest){
+                mark(JSON.parse(latest), res, latestDir, dir, function(){
+                    phantom.exit();
+                });
+                return false;
             }
         } else {
             console.log('ERROR: unable to make directory[' + dir + ']');

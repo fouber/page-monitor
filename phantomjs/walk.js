@@ -16,6 +16,7 @@ module.exports = function(TOKEN, data){
     var INCLUDE_SELECTORS = normalizeSelectors(data.includeSelectors);
     var EXCLUDE_SELECTORS = normalizeSelectors(data.excludeSelectors);
     var IGNORE_CHILDREN_SELECTORS = normalizeSelectors(data.ignoreChildrenSelectors);
+    var IGNORE_TEXT_SELECTORS = normalizeSelectors(data.ignoreTextSelectors);
     var ROOT = data.root || 'body';
 
     // reg
@@ -77,31 +78,35 @@ module.exports = function(TOKEN, data){
     function getAttr(elem){
         var ret = {};
         var filters = ATTR_FILTERS.slice(0);
+        var hasAttr = false;
         if(elem.tagName.toLowerCase() === 'input'){
             filters.push('type');
         }
         filters.forEach(function(key){
             var attr = elem.getAttribute(key);
             if(attr !== null){
+                hasAttr = true;
                 ret[key] = attr;
             }
         });
-        return ret;
+        return hasAttr ? ret : false;
     }
 
-    function filter(dom){
+    function filter(dom, parent){
         var ret = true;
         switch (dom.nodeType){
             case 1:
                 if(EXCLUDE_SELECTORS){
-                    ret = ret && (!dom.webkitMatchesSelector(EXCLUDE_SELECTORS));
+                    ret = ret && !dom.webkitMatchesSelector(EXCLUDE_SELECTORS);
                 }
                 if(INCLUDE_SELECTORS){
-                    ret = ret && dom.webkitMatchesSelector(INCLUDE_SELECTORS)
+                    ret = ret && dom.webkitMatchesSelector(INCLUDE_SELECTORS);
                 }
                 break;
             case 3:
-                // do nothing
+                if(IGNORE_TEXT_SELECTORS){
+                    ret = ret && !parent.webkitMatchesSelector(IGNORE_TEXT_SELECTORS);
+                }
                 break;
             default:
                 ret = false;
@@ -117,13 +122,16 @@ module.exports = function(TOKEN, data){
             node.name = elem.tagName.toLowerCase();
             if(!isInvisible(elem)){
                 node.rect = getRect(elem);
-                node.attr = getAttr(elem);
+                var attr = getAttr(elem);
+                if(attr){
+                    node.attr = attr;
+                }
                 node.style = getStyles(elem);
                 node.child = [];
                 if(!igonreChildren(elem)){
                     for(var i = 0, len = elem.childNodes.length; i < len; i++){
                         var child = elem.childNodes[i];
-                        if(filter(child)){
+                        if(filter(child, elem)){
                             var vdom = arguments.callee(child);
                             if(typeof vdom !== 'undefined' && vdom.style !== false){
                                 node.child.push(vdom);
