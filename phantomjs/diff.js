@@ -25,11 +25,22 @@ function equal(left, right){
     }
 }
 
+/**
+ *
+ * @param left
+ * @param right
+ * @returns {boolean|*}
+ */
 function isMatch(left, right){
     return (left.name === right.name) && equal(left.attr, right.attr);
 }
 
-var diff = module.exports = function(left, right, opt){
+/**
+ *
+ * @type {exports}
+ * @returns {Array}
+ */
+var diff = function(left, right, opt){
     var ret = [];
     var change = {
         type: 0,
@@ -82,3 +93,5 @@ var diff = module.exports = function(left, right, opt){
     }
     return ret;
 };
+
+module.exports = diff;

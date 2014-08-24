@@ -37,7 +37,7 @@ module.exports = function(TOKEN, data){
 
     // get computed styles
     function getStyles(elem){
-        var ret = {};
+        var ret = [];
         var filters = STYLE_FILTERS.slice(0);
         if(igonreChildren(elem)){
             filters.width = true;
@@ -55,10 +55,10 @@ module.exports = function(TOKEN, data){
                 filters.push('top', 'right', 'bottom', 'left');
             }
             filters.forEach(function(key){
-                ret[key] = styles.getPropertyValue(key);
+                ret.push(styles.getPropertyValue(key));
             });
         }
-        return ret;
+        return ret.join('~');
     }
 
     // get rect of element

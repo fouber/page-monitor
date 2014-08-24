@@ -13,11 +13,15 @@ phantom.onError = function(msg, trace) {
 var system = require('system');
 var webpage = require('webpage');
 var fs = require('fs');
+
 var _ = require('../util.js');
-var url = system.args[1];
-var data = JSON.parse(system.args[2]);
 var diff = require('./diff.js');
 var walk = require('./walk.js');
+var hl = require('./highlight.js');
+
+var url = system.args[1];
+var data = JSON.parse(system.args[2]);
+var ROOT = data.path.dir;
 var TOKEN =  (function unique(){
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
         var r = Math.random()*16 | 0;
@@ -121,29 +125,66 @@ function createPage(url, options, onload){
 
 var LATEST_LOG_FILENAME = 'latest.log';
 var SCREENSHOT_FILENAME = 'screenshot.png';
-var DIFF_FILENAME = 'diff.png';
 var INFO_FILENAME = 'info.json';
 var TREE_FILENAME = 'tree.json';
+var HIGHLIGHT_HTML_FILENAME = 'highlight.html';
 
-function render(page, rect, path){
-    console.log(JSON.stringify(rect));
-    page.clipRect = {
-        left  : rect[0],
-        top   : rect[1],
-        width : rect[2],
-        height: rect[3]
-    };
-    page.render(path);
+function getTree(dir){
+    var file = ROOT + '/' + dir + '/' + TREE_FILENAME;
+    return JSON.parse(fs.read(file));
 }
 
-function mark(left, right, leftDir, rightDir, callback){
-    var ret = diff(left, right, data.diff);
-    var root = data.path.dir;
-    console.log(root);
-    ret.forEach(function(item){
-        console.log('type: ' + item.type.toString(2) + '\tname: ' + item.node.name);
-    });
-    callback(ret);
+function pad(str){
+    return ('0' + str).substr(-2);
+}
+
+function getTimeString(num){
+    var d = new Date();
+    d.setTime(num);
+    var day = [
+        d.getFullYear(),
+        pad(d.getMonth() + 1),
+        pad(d.getDate())
+    ].join('-');
+    var time = [
+        pad(d.getHours()),
+        pad(d.getMinutes()),
+        pad(d.getSeconds())
+    ].join(':');
+    return day + ' ' + time;
+}
+
+function highlight(left, right, callback){
+    // TODO check diffed
+    var lTree = getTree(left);
+    var rTree = getTree(right);
+    var ret = diff(lTree, rTree, data.diff);
+    if(ret.length){
+        var lScreenshot = ROOT + '/' + left + '/' + SCREENSHOT_FILENAME;
+        var rScreenshot = ROOT + '/' + right + '/' + SCREENSHOT_FILENAME;
+        var diffFilename = ROOT + '/diff/' + left + '-' + right + '.png';
+        var html = phantom.libraryPath + '/' + HIGHLIGHT_HTML_FILENAME;
+        var url = 'file://' + html + '?';
+        var opt = {
+            page: {
+                settings: {
+                    localToRemoteUrlAccessEnabled: true
+                }
+            },
+            render: data.render
+        };
+        url += [
+            lScreenshot, rScreenshot,
+            getTimeString(left), getTimeString(right)
+        ].join('|');
+        createPage(url, opt, function(page){
+            page.evaluate(hl, TOKEN, ret, data.diff);
+            page.render(diffFilename);
+            callback(ret);
+        });
+    } else {
+        callback(ret);
+    }
 }
 
 createPage(url, data, function(page){
@@ -152,36 +193,38 @@ createPage(url, data, function(page){
     var json = JSON.stringify(res);
 
     // latest
-    var latest, latestDir, latestFile = data.path.dir + '/' + LATEST_LOG_FILENAME;
+    var latest, latestDir, latestTree,
+        latestFile = ROOT + '/' + LATEST_LOG_FILENAME;
     if(fs.exists(latestFile)){
         latest = fs.read(latestFile).trim();
-        latestDir = data.path.dir + '/' + latest;
-        latest = latestDir + '/' + TREE_FILENAME;
-        latest = fs.read(latest);
+        latestDir = ROOT + '/' + latest;
+        latestTree = fs.read(latestDir + '/' + TREE_FILENAME);
     }
 
     // save
-    if(latest && latest === json){
+    if(latestTree && latestTree === json){
         // do nothing
     } else {
         var now = Date.now();
-        var dir = data.path.dir + '/' + now;
+        var dir = ROOT + '/' + now;
         if(fs.makeDirectory(dir)){
             // save current
-            render(page, res.rect, dir + '/' + SCREENSHOT_FILENAME);
+            page.render(dir + '/' + SCREENSHOT_FILENAME);
             fs.write(dir + '/' + TREE_FILENAME, json);
             fs.write(dir + '/' + INFO_FILENAME, JSON.stringify({
                 time: now,
                 url: url,
                 settings: data
             }));
-            fs.write(data.path.dir + '/' + LATEST_LOG_FILENAME, now);
-
+            fs.write(ROOT + '/' + LATEST_LOG_FILENAME, now);
+            page.close();
             // diff
-            if(latest){
-                mark(JSON.parse(latest), res, latestDir, dir, function(ret){
-                    if(ret.length === 0){
-                        console.log('remove [' + dir + '] ' + fs.removeTree(dir));
+            if(latestTree){
+                highlight(latest, now, function(ret){
+                    if(ret.length === 0) {
+                        console.log('no change');
+                    } else {
+                        console.log('has diff');
                     }
                     phantom.exit();
                 });

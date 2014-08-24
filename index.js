@@ -68,12 +68,22 @@ function mergeSettings(settings){
                 'select', 'table'
             ],
             styleFilters: [
-                'background', 'border', 'box-shadow',
-                'clear', 'color', 'display', 'float',
-                'font', 'line-height', 'margin', 'opacity',
-                'padding', 'text-align', 'text-decoration',
-                'text-indent', 'text-shadow', 'vertical-align',
-                'visibility', 'position'
+                'margin-left', 'margin-top', 'margin-right', 'margin-bottom',
+                'border-left-color', 'border-left-style', 'border-left-width',
+                'border-top-color', 'border-top-style', 'border-top-width',
+                'border-right-color', 'border-right-style', 'border-right-width',
+                'border-bottom-color', 'border-bottom-style', 'border-bottom-width',
+                'border-top-left-radius', 'border-top-right-radius',
+                'border-bottom-left-radius', 'border-bottom-right-radius',
+                'padding-left', 'padding-top', 'padding-right', 'padding-bottom',
+                'background-color', 'background-image', 'background-repeat',
+                'background-size', 'background-position',
+                'list-style-image', 'list-style-position', 'list-style-type',
+                'outline-color', 'outline-style', 'outline-width',
+                'font-size', 'font-family', 'font-weight', 'font-style', 'line-height',
+                'box-shadow', 'clear', 'color', 'display', 'float', 'opacity', 'text-align',
+                'text-decoration', 'text-indent', 'text-shadow', 'vertical-align', 'visibility',
+                'position'
             ],
             attributeFilters: [ 'id', 'class' ],
             includeSelectors: [],
@@ -83,26 +93,29 @@ function mergeSettings(settings){
             root: 'body'
         },
         diff: {
-            changeStyle: {
+            highlight: {
                 add: {
-                    title: '新增',
-                    backgroundColor: 'rgba(127, 255, 127, 0.3)',
+                    // title: '新增',
+                    backgroundColor: 'rgba(127, 255, 127, 0.2)',
                     borderColor: '#090',
                     color: '#060',
-                    textShadow: '0 1px 1px rgba(0, 0, 0, 0.3)'
+                    textShadow: '0 1px 1px rgba(0, 0, 0, 0.2)'
                 },
                 remove: {
-                    title: '移除',
-                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                    borderColor: '#999',
-                    overflow: 'auto'
+                    // title: '移除',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    borderColor: '#999'
                 },
                 style: {
-                    title: '样式',
-                    backgroundColor: 'rgba(255, 0, 0, 0.3)',
+                    // title: '样式',
+                    backgroundColor: 'rgba(255, 0, 0, 0.2)',
                     borderColor: '#f00'
                 },
-                text: {},
+                text: {
+                    // title: '内容',
+                    backgroundColor: 'rgba(255, 255, 0, 0.2)',
+                    borderColor: '#ff0'
+                },
                 textAdd: {}
             }
         },
