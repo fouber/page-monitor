@@ -95,26 +95,29 @@ function mergeSettings(settings){
         diff: {
             highlight: {
                 add: {
-                    // title: '新增',
-                    backgroundColor: 'rgba(127, 255, 127, 0.2)',
+                    title: '新增',
+                    backgroundColor: 'rgba(127, 255, 127, 0.3)',
                     borderColor: '#090',
                     color: '#060',
-                    textShadow: '0 1px 1px rgba(0, 0, 0, 0.2)'
+                    textShadow: '0 1px 1px rgba(0, 0, 0, 0.3)'
                 },
                 remove: {
-                    // title: '移除',
+                    title: '删除',
                     backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                    borderColor: '#999'
+                    borderColor: '#999',
+                    color: '#fff'
                 },
                 style: {
-                    // title: '样式',
-                    backgroundColor: 'rgba(255, 0, 0, 0.2)',
-                    borderColor: '#f00'
+                    title: '样式',
+                    backgroundColor: 'rgba(255, 0, 0, 0.3)',
+                    borderColor: '#f00',
+                    color: '#f00'
                 },
                 text: {
-                    // title: '内容',
-                    backgroundColor: 'rgba(255, 255, 0, 0.2)',
-                    borderColor: '#ff0'
+                    title: '内容',
+                    backgroundColor: 'rgba(255, 255, 0, 0.3)',
+                    borderColor: '#f90',
+                    color: '#c30'
                 },
                 textAdd: {}
             }
@@ -179,19 +182,17 @@ var Monitor = function(url, options){
 
 util.inherits(Monitor, events.EventEmitter);
 
-Monitor.prototype.diff = function(data, callback){
+Monitor.prototype.diff = function(callback){
     if(this.running) return;
     this.running = true;
     var self = this;
     var args = [];
-    data = _.is(data, 'Object') ? data : this.getData(data);
     _.map(this.options.cli, function(key, value){
         args.push(key + '=' + value);
     });
     args.push(PHANTOMJS_SCRIPT_FILE);
     args.push(this.url);
     args.push(JSON.stringify(this.options));
-    args.push(JSON.stringify(data));
     this.proc = spawn('phantomjs', args);
     this.proc.stdout.on('data', function(data){
         console.log('phantomjs stdout: ' + data);

@@ -155,11 +155,13 @@ function getTimeString(num){
 }
 
 function highlight(left, right, callback){
+    console.log('diff [' + left + '] width [' + right + ']');
     // TODO check diffed
     var lTree = getTree(left);
     var rTree = getTree(right);
     var ret = diff(lTree, rTree, data.diff);
     if(ret.length){
+        console.log('has ' + ret.length + ' changes');
         var lScreenshot = ROOT + '/' + left + '/' + SCREENSHOT_FILENAME;
         var rScreenshot = ROOT + '/' + right + '/' + SCREENSHOT_FILENAME;
         var diffFilename = ROOT + '/diff/' + left + '-' + right + '.png';
@@ -177,7 +179,9 @@ function highlight(left, right, callback){
             lScreenshot, rScreenshot,
             getTimeString(left), getTimeString(right)
         ].join('|');
+        console.log('start highlight');
         createPage(url, opt, function(page){
+            console.log('highlight done');
             page.evaluate(hl, TOKEN, ret, data.diff);
             page.render(diffFilename);
             callback(ret);
@@ -187,8 +191,10 @@ function highlight(left, right, callback){
     }
 }
 
+console.log('load: ' + url);
 createPage(url, data, function(page){
     // walk
+    console.log('walk tree');
     var res = page.evaluate(walk, TOKEN, data.walk);
     var json = JSON.stringify(res);
 
@@ -205,6 +211,7 @@ createPage(url, data, function(page){
     if(latestTree && latestTree === json){
         // do nothing
     } else {
+        console.log('has diff');
         var now = Date.now();
         var dir = ROOT + '/' + now;
         if(fs.makeDirectory(dir)){
@@ -222,9 +229,7 @@ createPage(url, data, function(page){
             if(latestTree){
                 highlight(latest, now, function(ret){
                     if(ret.length === 0) {
-                        console.log('no change');
-                    } else {
-                        console.log('has diff');
+                        console.log('warning, no change');
                     }
                     phantom.exit();
                 });

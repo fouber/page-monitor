@@ -17,7 +17,7 @@ module.exports = function(token, diff, opt){
     var lContainer = document.getElementById('left');
     var rContainer = document.getElementById('right');
 
-    function highlightElement(rect, options, parent){
+    function highlightElement(rect, options, parent, useTitle){
         var div = document.createElement('x-diff-div');
         div.style.position = 'absolute';
         div.style.display = 'block';
@@ -26,21 +26,21 @@ module.exports = function(token, diff, opt){
         div.style.fontSize = '12px';
         div.style.fontWeight = 'normal';
         div.style.overflow = 'hidden';
-        div.style.color = '#333';
+        div.style.color = '#fff';
         div.style.boxShadow = '0 2px 5px rgba(0, 0, 0, 0.4)';
-        div.style.textShadow = '0 1px 1px rgba(0, 0, 0, 0.7)';
-        if(options.title){
+        // div.style.textShadow = '0 1px 1px rgba(0, 0, 0, 0.7)';
+        if(useTitle && options.title){
             var span = document.createElement('x-diff-span');
             span.innerHTML = options.title;
-            span.style.display = 'block';
-            span.style.position = 'absolute';
-            span.style.fontSize = '12px';
-            span.style.right = '0';
-            span.style.top = '0';
-            span.style.padding = '0 2px';
-            //span.style.borderLeft = '1px solid #fff';
-            //span.style.borderRadius = '3px';
-            //span.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
+            // span.style.display = 'block';
+            // span.style.position = 'absolute';
+            // span.style.fontSize = '12px';
+            // span.style.right = '0';
+            // span.style.top = '0';
+            // span.style.padding = '0 2px';
+            // span.style.borderLeft = '1px solid #fff';
+            // span.style.borderRadius = '3px';
+            // span.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
             div.appendChild(span);
         }
         for(var key in options){
@@ -53,6 +53,19 @@ module.exports = function(token, diff, opt){
         div.style.width = px(rect[2]);
         div.style.height = px(rect[3]);
         parent.appendChild(div);
+        return div;
+    }
+
+    var lenged = document.getElementById('legend');
+    for(var key in CHANGE_STYLE){
+        if(CHANGE_STYLE.hasOwnProperty(key)){
+            var div = highlightElement([0, 0, 50, 18], CHANGE_STYLE[key], lenged, true);
+            div.style.position = 'static';
+            div.style.margin = '5px 10px';
+            div.style.display = 'inline-block';
+            div.style.lineHeight = '18px';
+            div.style.textAlign = 'center';
+        }
     }
 
     diff.forEach(function(item){

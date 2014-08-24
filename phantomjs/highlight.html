@@ -16,26 +16,47 @@
             body {
                 white-space: nowrap;
                 background: #fff;
+                vertical-align: top;
             }
             h1 {
                 font-size: 18px;
-                color: #f40;
+                color: #fff;
+                text-align: center;
+                background: #000;
+                line-height: 24px;
+                height: 24px;
+                font-family: verdana, sans-serif;
             }
             #left, #right {
                 position: relative;
+                border: 1px solid #ccc;
             }
             .item {
                 display: inline-block;
+                vertical-align: top;
+                margin: 10px;
+            }
+            #legend {
+                font-size: 18px;
+                line-height: 18px;
+                padding: 10px 10px 0;
+            }
+            .wrapper {
+                padding-bottom: 40px;
+                border-bottom: 1px solid #fff;
             }
         </style>
     </head>
     <body>
-        <div class="item">
-            <h1 id="left-title"></h1>
-            <div id="left"></div>
-        </div><div class="item" style="margin-left:10px;">
+        <div class="wrapper">
+            <div id="legend"></div>
+            <div class="item">
+                <h1 id="left-title"></h1>
+                <div id="left"></div>
+            </div><div class="item">
             <h1 id="right-title"></h1>
             <div id="right"></div>
+        </div>
         </div>
         <script>
             (function(){

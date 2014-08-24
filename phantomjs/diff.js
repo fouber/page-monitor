@@ -46,7 +46,7 @@ var diff = function(left, right, opt){
         type: 0,
         node: right
     };
-    if(!equal(left.style, right.style)){
+    if(left.style !== right.style){
         change.type |= opt.changeType.STYLE;
     }
     var start = 0;
