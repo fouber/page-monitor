@@ -18,7 +18,7 @@ monitor.capture(function(code, log){
 
 ## API
 
-### Monitor(Class)
+### Monitor
 
 ```javascript
 var monitor = new Monitor(url, options);
