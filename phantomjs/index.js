@@ -31,11 +31,11 @@ function settings(page, options){
         if(key === 'settings'){
             _.map(value, function(key, value){
                 page.settings[key] = value;
-                console.log('page.settings.' + key + ' = ' + JSON.stringify(value));
+                // console.log('page.settings.' + key + ' = ' + JSON.stringify(value));
             });
         } else {
             page[key] = value;
-            console.log('page.' + key + ' = ' + JSON.stringify(value));
+            // console.log('page.' + key + ' = ' + JSON.stringify(value));
         }
     });
 }
