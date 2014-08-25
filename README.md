@@ -8,8 +8,7 @@
 var Monitor = require('page-monitor');
 
 var url = 'http://www.google.com';
-var options = { ... };
-var monitor = new Monitor(url, options);
+var monitor = new Monitor(url);
 monitor.capture(function(code, log){
     // code: phantom exit code
     // log: console.log from phantom
