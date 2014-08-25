@@ -40,6 +40,26 @@ function settings(page, options){
     });
 }
 
+function evaluate(page, fn, args){
+    var type = typeof fn;
+    var arr = [];
+    switch (type){
+        case 'string':
+            fn = eval('(' + fn + ')');
+            break;
+        case 'function':
+            // do nothing
+            break;
+        default :
+            // TODO
+            return;
+    }
+    arr.push(fn);
+    arr.push(TOKEN);
+    arr = arr.concat(args || []);
+    return page.evaluate.apply(page, arr);
+}
+
 function createPage(url, options, onload){
     var page = webpage.create();
     var timer, count = 0,
@@ -99,11 +119,7 @@ function createPage(url, options, onload){
         console.error(msgStack.join('\n'));
     };
     page.onInitialized = function() {
-        // TODO
-        // page.evaluate(function() {
-        //     window.HTMLAudioElement = Image;
-        //     window.Audio = Image;
-        // });
+        evaluate(page, options.events.init);
     };
     page.onConsoleMessage = function(msg){
         if(msg.substring(0, TOKEN.length) === TOKEN){
@@ -207,51 +223,58 @@ if(mode & _.mode.CAPTURE){
     init(JSON.parse(system.args[3]));
     console.log('load: ' + url);
     createPage(url, data, function(page){
-        // walk
-        console.log('walk tree');
-        var res = page.evaluate(walk, TOKEN, data.walk);
-        var json = JSON.stringify(res);
+        console.log('loaded: ' + url);
+        var delay = evaluate(page, data.events.beforeWalk) || 0;
+        console.log('delay: ' + delay);
+        setTimeout(function(){
+            // walk
+            console.log('walk tree');
+            var res = page.evaluate(walk, TOKEN, data.walk);
+            var json = JSON.stringify(res);
 
-        // latest
-        var latest, latestDir, latestTree,
-            latestFile = ROOT + '/' + LATEST_LOG_FILENAME;
-        if(fs.exists(latestFile)){
-            latest = fs.read(latestFile).trim();
-            latestDir = ROOT + '/' + latest;
-            latestTree = fs.read(latestDir + '/' + TREE_FILENAME);
-        }
-
-        // save
-        if(latestTree && latestTree === json){
-            // do nothing
-        } else {
-            var now = Date.now();
-            var dir = ROOT + '/' + now;
-            if(fs.makeDirectory(dir)){
-                // save current
-                page.render(dir + '/' + SCREENSHOT_FILENAME);
-                fs.write(dir + '/' + TREE_FILENAME, json);
-                fs.write(dir + '/' + INFO_FILENAME, JSON.stringify({
-                    time: now,
-                    url: url,
-                    settings: data
-                }));
-                fs.write(ROOT + '/' + LATEST_LOG_FILENAME, now);
-                page.close();
-                // diff
-                if(needDiff && latestTree){
-                    highlight(latest, now, function(ret){
-                        if(ret.length === 0) {
-                            console.log('warning, no change');
-                        }
-                        phantom.exit();
-                    });
-                    return false;
-                }
-            } else {
-                console.log('ERROR: unable to make directory[' + dir + ']');
+            // latest
+            var latest, latestDir, latestTree,
+                latestFile = ROOT + '/' + LATEST_LOG_FILENAME;
+            if(fs.exists(latestFile)){
+                latest = fs.read(latestFile).trim();
+                latestDir = ROOT + '/' + latest;
+                latestTree = fs.read(latestDir + '/' + TREE_FILENAME);
             }
-        }
+
+            // save
+            if(latestTree && latestTree === json){
+                phantom.exit();
+            } else {
+                var now = Date.now();
+                var dir = ROOT + '/' + now;
+                if(fs.makeDirectory(dir)){
+                    // save current
+                    page.render(dir + '/' + SCREENSHOT_FILENAME);
+                    fs.write(dir + '/' + TREE_FILENAME, json);
+                    fs.write(dir + '/' + INFO_FILENAME, JSON.stringify({
+                        time: now,
+                        url: url,
+                        settings: data
+                    }));
+                    fs.write(ROOT + '/' + LATEST_LOG_FILENAME, now);
+                    page.close();
+                    // diff
+                    if(needDiff && latestTree){
+                        highlight(latest, now, function(ret){
+                            if(ret.length === 0) {
+                                console.log('warning, no change');
+                            }
+                            phantom.exit();
+                        });
+                    } else {
+                        phantom.exit();
+                    }
+                } else {
+                    throw  new Error('ERROR: unable to make directory[' + dir + ']');
+                }
+            }
+        }, delay);
+        return false;
     });
 } else if(mode & _.mode.DIFF){
     var left = system.args[2];

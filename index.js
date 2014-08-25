@@ -125,6 +125,10 @@ function mergeSettings(settings){
                 textAdd: {}
             }
         },
+        events: {
+            init: function(token){},
+            beforeWalk: function(token){}
+        },
         render: {
             delay: 1000
         },
@@ -136,6 +140,12 @@ function mergeSettings(settings){
             }
         }
     };
+    _.map(settings.events, function(key, value){
+        if(typeof value === 'function'){
+            value = value.toString().replace(/^(function\s+)anonymous(?=\()/, '$1');
+            settings.events[key] = value;
+        }
+    });
     return _.merge(defaultSettings, settings || {});
 }
 
