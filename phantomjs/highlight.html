@@ -28,8 +28,12 @@
                 font-family: verdana, sans-serif;
             }
             #left, #right {
-                position: relative;
-                border: 1px solid #ccc;
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+                top: 0; left: 0;
+                right: 0; bottom: 0;
             }
             .item {
                 display: inline-block;
@@ -45,6 +49,10 @@
                 padding-bottom: 40px;
                 border-bottom: 1px solid #fff;
             }
+            .panel {
+                border: 1px solid #ccc;
+                position: relative;
+            }
         </style>
     </head>
     <body>
@@ -52,11 +60,15 @@
             <div id="legend"></div>
             <div class="item">
                 <h1 id="left-title"></h1>
-                <div id="left"></div>
+                <div id="left-panel" class="panel">
+                    <div id="left"></div>
+                </div>
             </div><div class="item">
-            <h1 id="right-title"></h1>
-            <div id="right"></div>
-        </div>
+                <h1 id="right-title"></h1>
+                <div id="right-panel" class="panel">
+                    <div id="right"></div>
+                </div>
+            </div>
         </div>
         <script>
             (function(){
@@ -69,11 +81,11 @@
 
                 var img = new Image();
                 img.src = search[0];
-                $('left').appendChild(img);
+                $('left-panel').appendChild(img);
 
                 img = new Image();
                 img.src = search[1];
-                $('right').appendChild(img);
+                $('right-panel').appendChild(img);
             })();
         </script>
     </body>

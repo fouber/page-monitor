@@ -288,7 +288,7 @@ if(mode & _.mode.CAPTURE){
     var left = system.args[2];
     var right = system.args[3];
     init(JSON.parse(system.args[4]));
-    highlight(left, right, function(ret){
+    highlight(left, right, function(ret, pic){
         if(ret.length === 0) {
             log('no change', _.log.WARNING);
         } else {
