@@ -203,6 +203,7 @@ console.log('mode: ' + mode.toString(2));
 if(mode & _.mode.CAPTURE){
     var url = system.args[2];
     var needDiff = (mode & _.mode.DIFF) > 0;
+    if(needDiff) console.log('need diff');
     init(JSON.parse(system.args[3]));
     console.log('load: ' + url);
     createPage(url, data, function(page){
@@ -239,7 +240,6 @@ if(mode & _.mode.CAPTURE){
                 page.close();
                 // diff
                 if(needDiff && latestTree){
-                    console.log('begin diff');
                     highlight(latest, now, function(ret){
                         if(ret.length === 0) {
                             console.log('warning, no change');
@@ -257,5 +257,10 @@ if(mode & _.mode.CAPTURE){
     var left = system.args[2];
     var right = system.args[3];
     init(JSON.parse(system.args[4]));
-    // TODO
+    highlight(left, right, function(ret){
+        if(ret.length === 0) {
+            console.log('warning, no change');
+        }
+        phantom.exit();
+    });
 }

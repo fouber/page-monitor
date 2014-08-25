@@ -168,22 +168,20 @@ function format(pattern, url, opt){
     }
 }
 
-function phantom(opt, args, onStdout, onStderr, onExit){
+function phantom(opt, args, callback){
     var arr = [];
     _.map(opt, function(key, value){
         arr.push(key + '=' + value);
     });
     arr = arr.concat(args);
     var proc = spawn('phantomjs', args);
-    if(typeof onStdout === 'function'){
-        proc.stdout.on('data', onStdout);
-    }
-    if(typeof onStderr === 'function'){
-        proc.stderr.on('data', onStderr);
-    }
-    if(typeof onExit === 'function'){
-        proc.on('exit', onExit);
-    }
+    proc.stdout.on('data', function(data){
+        console.log('phantomjs stdout: ' + data);
+    });
+    proc.stderr.on('data', function(data){
+        console.log('phantomjs stderr: ' + data);
+    });
+    proc.on('exit', callback);
     return proc;
 }
 
@@ -212,7 +210,7 @@ Monitor.prototype.capture = function(callback, diff){
     if(diff){
         type |= _.mode.DIFF;
     }
-    this.proc = phantom(
+    return phantom(
         this.options.cli,
         [
             PHANTOMJS_SCRIPT_FILE,
@@ -220,12 +218,26 @@ Monitor.prototype.capture = function(callback, diff){
             this.url,
             JSON.stringify(this.options)
         ],
-        function(data){
-            console.log('phantomjs stdout: ' + data);
-        },
-        function(data){
-            console.log('phantomjs stderr: ' + data);
-        },
+        function(code){
+            // TODO with code
+            self.running = false;
+            callback();
+        }
+    );
+};
+
+Monitor.prototype.diff = function(left, right, callback){
+    if(this.running) return;
+    this.running = true;
+    var self = this;
+    var type = _.mode.DIFF;
+    return phantom(
+        this.options.cli,
+        [
+            PHANTOMJS_SCRIPT_FILE,
+            type, left, right,
+            JSON.stringify(this.options)
+        ],
         function(code){
             // TODO with code
             self.running = false;
