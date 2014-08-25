@@ -300,7 +300,8 @@ if(mode & _.mode.CAPTURE){
         if(ret.length === 0) {
             log('no change', _.log.WARNING);
         } else {
-            log(pic, _.log.INFO);
+            var info = { left: left, right: right, diff: pic };
+            log(JSON.stringify(info), _.log.INFO);
         }
         phantom.exit();
     });
