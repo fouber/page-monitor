@@ -124,7 +124,9 @@ function createPage(url, options, onload){
         log(msgStack.join('\n'), _.log.ERROR);
     };
     page.onInitialized = function() {
-        evaluate(page, options.events.init);
+        if(options.events){
+            evaluate(page, options.events.init);
+        }
     };
     page.onConsoleMessage = function(msg){
         if(msg.substring(0, TOKEN.length) === TOKEN){

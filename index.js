@@ -246,7 +246,7 @@ Monitor.prototype.capture = function(callback, diff){
     this.running = true;
     var self = this;
     var type = _.mode.CAPTURE;
-    if(diff){
+    if(diff !== false){
         type |= _.mode.DIFF;
     }
     return phantom(
