@@ -19,9 +19,6 @@ var diff = require('./diff.js');
 var walk = require('./walk.js');
 var hl = require('./highlight.js');
 
-var url = system.args[1];
-var data = JSON.parse(system.args[2]);
-var ROOT = data.path.dir;
 var TOKEN =  (function unique(){
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
         var r = Math.random()*16 | 0;
@@ -29,21 +26,16 @@ var TOKEN =  (function unique(){
     });
 })();
 
-data.diff.changeType = {
-    ADD:    1,  // 0001
-    REMOVE: 2,  // 0010
-    STYLE:  4,  // 0100
-    TEXT:   8   // 1000
-};
-
 function settings(page, options){
     _.map(options, function(key, value){
         if(key === 'settings'){
             _.map(value, function(key, value){
                 page.settings[key] = value;
+                console.log('page.settings.' + key + ' = ' + JSON.stringify(value));
             });
         } else {
             page[key] = value;
+            console.log('page.' + key + ' = ' + JSON.stringify(value));
         }
     });
 }
@@ -93,7 +85,7 @@ function createPage(url, options, onload){
     page.onResourceTimeout = function(req){
         count--;
         // todo
-        // console.log('- [' + count + ']' + req.url);
+        console.log('resource [' + req.url + '] timeout');
         callback();
     };
     page.onError = function(msg, trace){
@@ -108,10 +100,10 @@ function createPage(url, options, onload){
     };
     page.onInitialized = function() {
         // TODO
-        page.evaluate(function() {
-            window.HTMLAudioElement = Image;
-            window.Audio = Image;
-        });
+        // page.evaluate(function() {
+        //     window.HTMLAudioElement = Image;
+        //     window.Audio = Image;
+        // });
     };
     page.onConsoleMessage = function(msg){
         if(msg.substring(0, TOKEN.length) === TOKEN){
@@ -191,52 +183,79 @@ function highlight(left, right, callback){
     }
 }
 
-console.log('load: ' + url);
-createPage(url, data, function(page){
-    // walk
-    console.log('walk tree');
-    var res = page.evaluate(walk, TOKEN, data.walk);
-    var json = JSON.stringify(res);
+var data = {};
+var ROOT = '';
 
-    // latest
-    var latest, latestDir, latestTree,
-        latestFile = ROOT + '/' + LATEST_LOG_FILENAME;
-    if(fs.exists(latestFile)){
-        latest = fs.read(latestFile).trim();
-        latestDir = ROOT + '/' + latest;
-        latestTree = fs.read(latestDir + '/' + TREE_FILENAME);
-    }
+function init(d){
+    data = d;
+    ROOT = data.path.dir;
+    data.diff.changeType = {
+        ADD:    1,  // 0001
+        REMOVE: 2,  // 0010
+        STYLE:  4,  // 0100
+        TEXT:   8   // 1000
+    };
+}
 
-    // save
-    if(latestTree && latestTree === json){
-        // do nothing
-    } else {
-        console.log('has diff');
-        var now = Date.now();
-        var dir = ROOT + '/' + now;
-        if(fs.makeDirectory(dir)){
-            // save current
-            page.render(dir + '/' + SCREENSHOT_FILENAME);
-            fs.write(dir + '/' + TREE_FILENAME, json);
-            fs.write(dir + '/' + INFO_FILENAME, JSON.stringify({
-                time: now,
-                url: url,
-                settings: data
-            }));
-            fs.write(ROOT + '/' + LATEST_LOG_FILENAME, now);
-            page.close();
-            // diff
-            if(latestTree){
-                highlight(latest, now, function(ret){
-                    if(ret.length === 0) {
-                        console.log('warning, no change');
-                    }
-                    phantom.exit();
-                });
-                return false;
-            }
-        } else {
-            console.log('ERROR: unable to make directory[' + dir + ']');
+var mode = parseInt(system.args[1]);
+console.log('mode: ' + mode.toString(2));
+
+if(mode & _.mode.CAPTURE){
+    var url = system.args[2];
+    var needDiff = (mode & _.mode.DIFF) > 0;
+    init(JSON.parse(system.args[3]));
+    console.log('load: ' + url);
+    createPage(url, data, function(page){
+        // walk
+        console.log('walk tree');
+        var res = page.evaluate(walk, TOKEN, data.walk);
+        var json = JSON.stringify(res);
+
+        // latest
+        var latest, latestDir, latestTree,
+            latestFile = ROOT + '/' + LATEST_LOG_FILENAME;
+        if(fs.exists(latestFile)){
+            latest = fs.read(latestFile).trim();
+            latestDir = ROOT + '/' + latest;
+            latestTree = fs.read(latestDir + '/' + TREE_FILENAME);
         }
-    }
-});
+
+        // save
+        if(latestTree && latestTree === json){
+            // do nothing
+        } else {
+            var now = Date.now();
+            var dir = ROOT + '/' + now;
+            if(fs.makeDirectory(dir)){
+                // save current
+                page.render(dir + '/' + SCREENSHOT_FILENAME);
+                fs.write(dir + '/' + TREE_FILENAME, json);
+                fs.write(dir + '/' + INFO_FILENAME, JSON.stringify({
+                    time: now,
+                    url: url,
+                    settings: data
+                }));
+                fs.write(ROOT + '/' + LATEST_LOG_FILENAME, now);
+                page.close();
+                // diff
+                if(needDiff && latestTree){
+                    console.log('begin diff');
+                    highlight(latest, now, function(ret){
+                        if(ret.length === 0) {
+                            console.log('warning, no change');
+                        }
+                        phantom.exit();
+                    });
+                    return false;
+                }
+            } else {
+                console.log('ERROR: unable to make directory[' + dir + ']');
+            }
+        }
+    });
+} else if(mode & _.mode.DIFF){
+    var left = system.args[2];
+    var right = system.args[3];
+    init(JSON.parse(system.args[4]));
+    // TODO
+}

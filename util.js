@@ -28,3 +28,8 @@ _.merge = function(source, target){
     }
     return source;
 };
+
+_.mode = {
+    CAPTURE: 1,
+    DIFF   : 2
+};

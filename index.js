@@ -42,7 +42,10 @@ function base64(data){
 
 function mergeSettings(settings){
     var defaultSettings = {
-        cli: {},
+        cli: {
+            '--max-disk-cache-size' : '0',
+            '--disk-cache' : 'false'
+        },
         page: {
             viewportSize: {
                 width: 320,
@@ -165,6 +168,25 @@ function format(pattern, url, opt){
     }
 }
 
+function phantom(opt, args, onStdout, onStderr, onExit){
+    var arr = [];
+    _.map(opt, function(key, value){
+        arr.push(key + '=' + value);
+    });
+    arr = arr.concat(args);
+    var proc = spawn('phantomjs', args);
+    if(typeof onStdout === 'function'){
+        proc.stdout.on('data', onStdout);
+    }
+    if(typeof onStderr === 'function'){
+        proc.stderr.on('data', onStderr);
+    }
+    if(typeof onExit === 'function'){
+        proc.on('exit', onExit);
+    }
+    return proc;
+}
+
 var Monitor = function(url, options){
     events.EventEmitter.call(this);
     options = mergeSettings(options);
@@ -182,28 +204,34 @@ var Monitor = function(url, options){
 
 util.inherits(Monitor, events.EventEmitter);
 
-Monitor.prototype.diff = function(callback){
+Monitor.prototype.capture = function(callback, diff){
     if(this.running) return;
     this.running = true;
     var self = this;
-    var args = [];
-    _.map(this.options.cli, function(key, value){
-        args.push(key + '=' + value);
-    });
-    args.push(PHANTOMJS_SCRIPT_FILE);
-    args.push(this.url);
-    args.push(JSON.stringify(this.options));
-    this.proc = spawn('phantomjs', args);
-    this.proc.stdout.on('data', function(data){
-        console.log('phantomjs stdout: ' + data);
-    });
-    this.proc.stderr.on('data', function(data){
-        console.log('phantomjs stderr: ' + data);
-    });
-    this.proc.on('exit', function(){
-        self.running = false;
-        callback();
-    });
+    var type = _.mode.CAPTURE;
+    if(diff){
+        type |= _.mode.DIFF;
+    }
+    this.proc = phantom(
+        this.options.cli,
+        [
+            PHANTOMJS_SCRIPT_FILE,
+            type,
+            this.url,
+            JSON.stringify(this.options)
+        ],
+        function(data){
+            console.log('phantomjs stdout: ' + data);
+        },
+        function(data){
+            console.log('phantomjs stderr: ' + data);
+        },
+        function(code){
+            // TODO with code
+            self.running = false;
+            callback();
+        }
+    );
 };
 
 module.exports = Monitor;
