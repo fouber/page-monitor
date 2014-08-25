@@ -1,6 +1,6 @@
 var log = function(msg, type){
     type = type || _.log.DEBUG;
-    console.log(type + ':' + msg);
+    console.log(type + msg);
 };
 
 phantom.onError = function(msg, trace) {

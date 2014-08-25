@@ -178,6 +178,32 @@ function format(pattern, url, opt){
     }
 }
 
+function parseLog(stdout, stderr){
+    var ret = {};
+    var types = [];
+    var names = {};
+    _.map(_.log, function(type, str){
+        ret[type] = [];
+        names[str] = type;
+        types.push(_.escapeReg(str));
+    });
+    types = types.join('|');
+    var splitReg = new RegExp('(?:^|[\r\n]+)(?=' + types + ')');
+    var typeReg = new RegExp('^(' + types + ')');
+    String(stdout + '\n' + stderr).split(splitReg).forEach(function(item){
+        item = item.trim();
+        if(item){
+            var type = 'DEBUG';
+            item = item.replace(typeReg, function(m, $1){
+                type = names[$1] || type;
+                return '';
+            });
+            ret[type].push(item);
+        }
+    });
+    return ret;
+}
+
 function phantom(opt, args, callback){
     var arr = [];
     _.map(opt, function(key, value){
@@ -185,13 +211,16 @@ function phantom(opt, args, callback){
     });
     arr = arr.concat(args);
     var proc = spawn('phantomjs', args);
+    var stdout = '', stderr = '';
     proc.stdout.on('data', function(data){
-        console.log('phantomjs stdout: ' + data);
+        stdout += data;
     });
     proc.stderr.on('data', function(data){
-        console.log('phantomjs stderr: ' + data);
+        stderr += data;
     });
-    proc.on('exit', callback);
+    proc.on('exit', function(code){
+        callback(code, parseLog(stdout, stderr));
+    });
     return proc;
 }
 
@@ -228,10 +257,10 @@ Monitor.prototype.capture = function(callback, diff){
             this.url,
             JSON.stringify(this.options)
         ],
-        function(code){
+        function(code, log){
             // TODO with code
             self.running = false;
-            callback();
+            callback(code, log);
         }
     );
 };
@@ -248,10 +277,10 @@ Monitor.prototype.diff = function(left, right, callback){
             type, left, right,
             JSON.stringify(this.options)
         ],
-        function(code){
+        function(code, log){
             // TODO with code
             self.running = false;
-            callback();
+            callback(code, log);
         }
     );
 };

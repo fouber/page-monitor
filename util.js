@@ -29,15 +29,19 @@ _.merge = function(source, target){
     return source;
 };
 
+_.escapeReg = function(str){
+    return str.replace(/[\.\\\+\*\?\[\^\]\$\(\){}=!<>\|:\/]/g, '\\$&');
+};
+
 _.mode = {
     CAPTURE: 1,
     DIFF   : 2
 };
 
 _.log = {
-    DEBUG: 'debug',
-    WARNING: 'warning',
-    INFO: 'info',
-    ERROR: 'error',
-    NOTICE: 'notice'
+    DEBUG: '<[debug]>',
+    WARNING: '<[warning]>',
+    INFO: '<[info]>',
+    ERROR: '<[error]>',
+    NOTICE: '<[notice]>'
 };
