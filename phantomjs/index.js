@@ -264,17 +264,25 @@ if(mode & _.mode.CAPTURE){
                     }));
                     fs.write(ROOT + '/' + LATEST_LOG_FILENAME, now);
                     page.close();
+                    var info = {
+                        time: now,
+                        dir: dir,
+                        screenshot: dir + '/' + SCREENSHOT_FILENAME
+                    };
                     // diff
                     if(needDiff && latestTree){
                         highlight(latest, now, function(ret, pic){
                             if(ret.length === 0) {
                                 log('no change', _.log.WARNING);
                             } else {
-                                log(pic, _.log.INFO);
+                                info.latest = latest;
+                                info.diff = pic;
+                                log(JSON.stringify(info), _.log.INFO);
                             }
                             phantom.exit();
                         });
                     } else {
+                        log(JSON.stringify(info), _.log.INFO);
                         phantom.exit();
                     }
                 } else {
