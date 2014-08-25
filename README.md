@@ -66,7 +66,7 @@ var defaultSettings = {
 
 caputure webpage and save screenshot, then diff with last save.
 
-> default value of param ``diff`` is true, using 'false' to capture only.
+> default value of param ``diff`` is true, using ``false`` to capture only.
 
 ```javascript
 var monitor = new Monitor(url, options);
