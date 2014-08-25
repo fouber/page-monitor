@@ -1,25 +1,25 @@
 {
-  "name": "page-monitor",
-  "version": "0.1.0",
-  "description": "monitor pages and diff the change",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [
-    "monitor",
-    "phantomjs",
-    "phantom",
-    "diff"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/fouber/page-monitor.git"
-  },
-  "bugs": {
-    "url": "https://github.com/fouber/page-monitor/issues"
-  },
-  "homepage": "https://github.com/fouber/page-monitor",
-  "author": "fouber <fouber.NET@gmail.com>",
-  "license": "MIT"
+    "name": "page-monitor",
+    "version": "0.1.0",
+    "description": "monitor pages and diff the change",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [
+        "monitor",
+        "phantomjs",
+        "phantom",
+        "diff"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/fouber/page-monitor.git"
+    },
+    "bugs": {
+        "url": "https://github.com/fouber/page-monitor/issues"
+    },
+    "homepage": "https://github.com/fouber/page-monitor",
+    "author": "fouber <fouber.NET@gmail.com>",
+    "license": "MIT"
 }
