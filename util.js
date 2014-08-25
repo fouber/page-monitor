@@ -33,3 +33,11 @@ _.mode = {
     CAPTURE: 1,
     DIFF   : 2
 };
+
+_.log = {
+    DEBUG: 'debug',
+    WARNING: 'warning',
+    INFO: 'info',
+    ERROR: 'error',
+    NOTICE: 'notice'
+};

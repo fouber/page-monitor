@@ -1,20 +1,26 @@
+var log = function(msg, type){
+    type = type || _.log.DEBUG;
+    console.log(type + ':' + msg);
+};
+
 phantom.onError = function(msg, trace) {
-    var msgStack = ['PHANTOM ERROR: ' + msg];
+    var msgStack = [ msg ];
     if (trace && trace.length) {
         msgStack.push('TRACE:');
         trace.forEach(function(t) {
             msgStack.push(' -> ' + (t.file || t.sourceURL) + ': ' + t.line + (t.function ? ' (in function ' + t.function +')' : ''));
         });
     }
-    console.error(msgStack.join('\n'));
+    log(msgStack.join('\n'), _.log.ERROR);
     phantom.exit(1);
 };
+
+var _ = require('../util.js');
 
 var system = require('system');
 var webpage = require('webpage');
 var fs = require('fs');
 
-var _ = require('../util.js');
 var diff = require('./diff.js');
 var walk = require('./walk.js');
 var hl = require('./highlight.js');
@@ -31,11 +37,11 @@ function settings(page, options){
         if(key === 'settings'){
             _.map(value, function(key, value){
                 page.settings[key] = value;
-                // console.log('page.settings.' + key + ' = ' + JSON.stringify(value));
+                log('page.settings.' + key + ' = ' + JSON.stringify(value));
             });
         } else {
             page[key] = value;
-            // console.log('page.' + key + ' = ' + JSON.stringify(value));
+            log('page.' + key + ' = ' + JSON.stringify(value));
         }
     });
 }
@@ -86,7 +92,7 @@ function createPage(url, options, onload){
         if(status === 'success'){
             callback();
         } else {
-            //TODO
+            log('load page error [' + status + ']', _.log.ERROR);
             phantom.exit(1);
         }
     };
@@ -104,27 +110,25 @@ function createPage(url, options, onload){
     };
     page.onResourceTimeout = function(req){
         count--;
-        // todo
-        console.log('resource [' + req.url + '] timeout');
+        log('resource [' + req.url + '] timeout', _.log.WARNING);
         callback();
     };
     page.onError = function(msg, trace){
-        var msgStack = ['ERROR: ' + msg];
+        var msgStack = [ msg ];
         if (trace && trace.length) {
             msgStack.push('TRACE:');
             trace.forEach(function(t) {
                 msgStack.push(' -> ' + t.file + ': ' + t.line + (t.function ? ' (in function "' + t.function +'")' : ''));
             });
         }
-        console.error(msgStack.join('\n'));
+        log(msgStack.join('\n'), _.log.ERROR);
     };
     page.onInitialized = function() {
         evaluate(page, options.events.init);
     };
     page.onConsoleMessage = function(msg){
         if(msg.substring(0, TOKEN.length) === TOKEN){
-            // TODO parse
-            console.log('console: ' + msg.substring(TOKEN.length));
+            log('console: ' + msg.substring(TOKEN.length), _.log.NOTICE);
         }
     };
     page.open(url);
@@ -163,13 +167,13 @@ function getTimeString(num){
 }
 
 function highlight(left, right, callback){
-    console.log('diff [' + left + '] width [' + right + ']');
+    log('diff [' + left + '] width [' + right + ']');
     // TODO check diffed
     var lTree = getTree(left);
     var rTree = getTree(right);
     var ret = diff(lTree, rTree, data.diff);
     if(ret.length){
-        console.log('has ' + ret.length + ' changes');
+        log('has ' + ret.length + ' changes');
         var lScreenshot = ROOT + '/' + left + '/' + SCREENSHOT_FILENAME;
         var rScreenshot = ROOT + '/' + right + '/' + SCREENSHOT_FILENAME;
         var diffFilename = ROOT + '/diff/' + left + '-' + right + '.png';
@@ -187,12 +191,12 @@ function highlight(left, right, callback){
             lScreenshot, rScreenshot,
             getTimeString(left), getTimeString(right)
         ].join('|');
-        console.log('start highlight');
+        log('start highlight');
         createPage(url, opt, function(page){
-            console.log('highlight done');
+            log('highlight done');
             page.evaluate(hl, TOKEN, ret, data.diff);
             page.render(diffFilename);
-            callback(ret);
+            callback(ret, diffFilename);
         });
     } else {
         callback(ret);
@@ -214,21 +218,21 @@ function init(d){
 }
 
 var mode = parseInt(system.args[1]);
-console.log('mode: ' + mode.toString(2));
+log('mode: ' + mode.toString(2));
 
 if(mode & _.mode.CAPTURE){
     var url = system.args[2];
     var needDiff = (mode & _.mode.DIFF) > 0;
-    if(needDiff) console.log('need diff');
+    if(needDiff) log('need diff');
     init(JSON.parse(system.args[3]));
-    console.log('load: ' + url);
+    log('load: ' + url);
     createPage(url, data, function(page){
-        console.log('loaded: ' + url);
+        log('loaded: ' + url);
         var delay = evaluate(page, data.events.beforeWalk) || 0;
-        console.log('delay: ' + delay);
+        log('delay: ' + delay);
         setTimeout(function(){
             // walk
-            console.log('walk tree');
+            log('walk tree');
             var res = page.evaluate(walk, TOKEN, data.walk);
             var json = JSON.stringify(res);
 
@@ -260,9 +264,11 @@ if(mode & _.mode.CAPTURE){
                     page.close();
                     // diff
                     if(needDiff && latestTree){
-                        highlight(latest, now, function(ret){
+                        highlight(latest, now, function(ret, pic){
                             if(ret.length === 0) {
-                                console.log('warning, no change');
+                                log('no change', _.log.WARNING);
+                            } else {
+                                log(pic, _.log.INFO);
                             }
                             phantom.exit();
                         });
@@ -282,7 +288,9 @@ if(mode & _.mode.CAPTURE){
     init(JSON.parse(system.args[4]));
     highlight(left, right, function(ret){
         if(ret.length === 0) {
-            console.log('warning, no change');
+            log('no change', _.log.WARNING);
+        } else {
+            log(pic, _.log.INFO);
         }
         phantom.exit();
     });
