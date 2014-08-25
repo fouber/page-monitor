@@ -1,6 +1,6 @@
 ## page monitor
 
-> capture webpage and diff the change with phantomjs
+> capture webpage and diff the change with [phantomjs](http://phantomjs.org/)
 
 ## Usage
 
