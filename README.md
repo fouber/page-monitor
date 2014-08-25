@@ -62,9 +62,11 @@ var defaultSettings = {
 };
 ```
 
-### monitor.capture(callback);
+### monitor.capture(callback, diff);
 
-caputure webpage and save screenshot
+caputure webpage and save screenshot, then diff with last save.
+
+> default value of param ``diff`` is true, using 'false' to capture only.
 
 ```javascript
 var monitor = new Monitor(url, options);
