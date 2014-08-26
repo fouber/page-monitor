@@ -1,6 +1,6 @@
 ## page monitor
 
-> capture webpage and diff the change dom with [phantomjs](http://phantomjs.org/)
+> capture webpage and diff the dom change with [phantomjs](http://phantomjs.org/)
 
 ## effects
 
