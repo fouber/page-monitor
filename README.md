@@ -4,19 +4,19 @@
 
 ## effects
 
-### Add
+### Element Add
 
 ![element add](./demo/1409037825746-1409037838093.png)
 
-### Removed
+### Element Removed
 
 ![element removed](./demo/1409037838093-1409037882033.png)
 
-### Text change
+### Text Changed
 
 ![element removed](./demo/1409037882033-1409037916727.png)
 
-### Style Change
+### Style Changed
 
 ![element removed](./demo/1409038130483-1409038137417.png)
 
