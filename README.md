@@ -1,8 +1,8 @@
-## page monitor
+## Page Monitor
 
 > capture webpage and diff the dom change with [phantomjs](http://phantomjs.org/)
 
-## effects
+## Effects
 
 ### Element Add
 
