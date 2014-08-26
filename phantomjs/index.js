@@ -130,7 +130,9 @@ function createPage(url, options, onload){
     };
     page.onConsoleMessage = function(msg){
         if(msg.substring(0, TOKEN.length) === TOKEN){
-            log('console: ' + msg.substring(TOKEN.length), _.log.NOTICE);
+            log(msg.substring(TOKEN.length));
+        } else {
+            log(msg, _.log.NOTICE);
         }
     };
     page.open(url);

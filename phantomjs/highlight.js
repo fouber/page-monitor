@@ -59,12 +59,13 @@ module.exports = function(token, diff, opt){
     var lenged = document.getElementById('legend');
     for(var key in CHANGE_STYLE){
         if(CHANGE_STYLE.hasOwnProperty(key)){
-            var div = highlightElement([0, 0, 50, 18], CHANGE_STYLE[key], lenged, true);
+            var div = highlightElement([0, 0, 100, 18], CHANGE_STYLE[key], lenged, true);
             div.style.position = 'static';
-            div.style.margin = '5px 10px';
+            div.style.margin = '5px 8px';
             div.style.display = 'inline-block';
             div.style.lineHeight = '18px';
             div.style.textAlign = 'center';
+            div.style.fontWeight = 'bold';
         }
     }
 

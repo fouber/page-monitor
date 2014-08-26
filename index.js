@@ -11,6 +11,11 @@ var PHANTOMJS_SCRIPT_FILE = path.join(PHANTOMJS_SCRIPT_DIR, 'index.js');
 var _ = require('./util.js');
 var _exists = fs.existsSync || path.existsSync;
 
+/**
+ * mkdir -p
+ * @param {String} path
+ * @param {Number} mode
+ */
 function mkdirp(path, mode){
     if (typeof mode === 'undefined') {
         //511 === 0777
@@ -28,6 +33,11 @@ function mkdirp(path, mode){
     }
 }
 
+/**
+ * base64 encode
+ * @param {String|Buffer} data
+ * @returns {String}
+ */
 function base64(data){
     if(data instanceof Buffer){
         //do nothing for quickly determining.
@@ -40,6 +50,11 @@ function base64(data){
     return data.toString('base64');
 }
 
+/**
+ * merge settings
+ * @param {Object} settings
+ * @returns {*}
+ */
 function mergeSettings(settings){
     var defaultSettings = {
         cli: {
@@ -98,26 +113,26 @@ function mergeSettings(settings){
         diff: {
             highlight: {
                 add: {
-                    title: '新增',
+                    title: '新增(Add)',
                     backgroundColor: 'rgba(127, 255, 127, 0.3)',
                     borderColor: '#090',
                     color: '#060',
                     textShadow: '0 1px 1px rgba(0, 0, 0, 0.3)'
                 },
                 remove: {
-                    title: '删除',
+                    title: '删除(Remove)',
                     backgroundColor: 'rgba(0, 0, 0, 0.5)',
                     borderColor: '#999',
                     color: '#fff'
                 },
                 style: {
-                    title: '样式',
+                    title: '样式(Style)',
                     backgroundColor: 'rgba(255, 0, 0, 0.3)',
                     borderColor: '#f00',
                     color: '#f00'
                 },
                 text: {
-                    title: '内容',
+                    title: '文本(Text)',
                     backgroundColor: 'rgba(255, 255, 0, 0.3)',
                     borderColor: '#f90',
                     color: '#c30'
@@ -140,19 +155,22 @@ function mergeSettings(settings){
             }
         }
     };
-    _.map(settings.events, function(key, value){
-        if(typeof value === 'function'){
-            value = value.toString().replace(/^(function\s+)anonymous(?=\()/, '$1');
-            settings.events[key] = value;
-        }
-    });
+    if(settings && settings.events){
+        _.map(settings.events, function(key, value){
+            if(typeof value === 'function'){
+                value = value.toString().replace(/^(function\s+)anonymous(?=\()/, '$1');
+                settings.events[key] = value;
+            }
+        });
+    }
     return _.merge(defaultSettings, settings || {});
 }
 
-function phantomjs(args){
-
-}
-
+/**
+ *
+ * @param {String} path
+ * @returns {String}
+ */
 function escapePath(path){
     if(path === '/'){
         return '-';
@@ -161,6 +179,13 @@ function escapePath(path){
     }
 }
 
+/**
+ * path format
+ * @param {String|Function} pattern
+ * @param {String} url
+ * @param {Object} opt
+ * @returns {String}
+ */
 function format(pattern, url, opt){
     switch (typeof pattern){
         case 'function':
@@ -178,57 +203,33 @@ function format(pattern, url, opt){
     }
 }
 
-function parseLog(stdout, stderr){
-    var ret = {};
+var LOG_VALUE_MAP ={};
+var logTypes = (function(){
     var types = [];
-    var names = {};
-    _.map(_.log, function(type, str){
-        ret[type] = [];
-        names[str] = type;
-        types.push(_.escapeReg(str));
+    _.map(_.log, function(key, value){
+        LOG_VALUE_MAP[value] = key.toLowerCase();
+        types.push(_.escapeReg(value));
     });
-    types = types.join('|');
-    var splitReg = new RegExp('(?:^|[\r\n]+)(?=' + types + ')');
-    var typeReg = new RegExp('^(' + types + ')');
-    String(stdout + '\n' + stderr).split(splitReg).forEach(function(item){
-        item = item.trim();
-        if(item){
-            var type = 'DEBUG';
-            item = item.replace(typeReg, function(m, $1){
-                type = names[$1] || type;
-                return '';
-            });
-            ret[type].push(item);
-        }
-    });
-    return ret;
-}
+    return types.join('|');
+})();
+var LOG_SPLIT_REG = new RegExp('(?:^|[\r\n]+)(?=' + logTypes + ')');
+var LOG_TYPE_REG = new RegExp('^(' + logTypes + ')');
 
-function phantom(opt, args, callback){
-    var arr = [];
-    _.map(opt, function(key, value){
-        arr.push(key + '=' + value);
-    });
-    arr = arr.concat(args);
-    var proc = spawn('phantomjs', args);
-    var stdout = '', stderr = '';
-    proc.stdout.on('data', function(data){
-        stdout += data;
-    });
-    proc.stderr.on('data', function(data){
-        stderr += data;
-    });
-    proc.on('exit', function(code){
-        callback(code, parseLog(stdout, stderr));
-    });
-    return proc;
-}
-
+/**
+ * Monitor Class Constructor
+ * @param {String} url
+ * @param {Object} options
+ * @constructor
+ */
 var Monitor = function(url, options){
     events.EventEmitter.call(this);
     options = mergeSettings(options);
     this.url = options.url = url;
     this.running = false;
+    var log = this.log = {};
+    _.map(_.log, function(key){
+        log[key.toLowerCase()] = [];
+    });
     options.path.dir = path.join(
         options.path.root || DEFAULT_DATA_DIRNAME,
         format(options.path.format, url, Url.parse(url))
@@ -239,18 +240,24 @@ var Monitor = function(url, options){
     this.options = options;
 };
 
+// inherit from events.EventEmitter
 util.inherits(Monitor, events.EventEmitter);
 
-Monitor.prototype.capture = function(callback, diff){
+/**
+ * capture webpage and diff
+ * @param {Function} callback
+ * @param {Boolean} noDiff
+ * @returns {*}
+ */
+Monitor.prototype.capture = function(callback, noDiff){
     if(this.running) return;
     this.running = true;
     var self = this;
     var type = _.mode.CAPTURE;
-    if(diff !== false){
+    if(!noDiff){
         type |= _.mode.DIFF;
     }
-    return phantom(
-        this.options.cli,
+    return this._phantom(
         [
             PHANTOMJS_SCRIPT_FILE,
             type,
@@ -260,18 +267,24 @@ Monitor.prototype.capture = function(callback, diff){
         function(code, log){
             // TODO with code
             self.running = false;
-            callback(code, log);
+            callback.call(self, code, log);
         }
     );
 };
 
+/**
+ * diff with two times
+ * @param {Number|String} left
+ * @param {Number|String} right
+ * @param {Function} callback
+ * @returns {*}
+ */
 Monitor.prototype.diff = function(left, right, callback){
     if(this.running) return;
     this.running = true;
     var self = this;
     var type = _.mode.DIFF;
-    return phantom(
-        this.options.cli,
+    return this._phantom(
         [
             PHANTOMJS_SCRIPT_FILE,
             type, left, right,
@@ -280,9 +293,54 @@ Monitor.prototype.diff = function(left, right, callback){
         function(code, log){
             // TODO with code
             self.running = false;
-            callback(code, log);
+            callback.call(self, code, log);
         }
     );
+};
+
+/**
+ * spawn phantom
+ * @param {Array} args
+ * @param {Function} callback
+ * @returns {*}
+ * @private
+ */
+Monitor.prototype._phantom = function(args, callback){
+    var arr = [];
+    _.map(this.options.cli, function(key, value){
+        arr.push(key + '=' + value);
+    });
+    arr = arr.concat(args);
+    var proc = spawn('phantomjs', args);
+    proc.stdout.on('data', this._parseLog.bind(this));
+    proc.stderr.on('data', this._parseLog.bind(this));
+    proc.on('exit', function(code){
+        callback(code);
+    });
+    return proc;
+};
+
+/**
+ * parse log from phantom
+ * @param {String} msg
+ * @private
+ */
+Monitor.prototype._parseLog = function(msg){
+    var self = this;
+    String(msg || '').split(LOG_SPLIT_REG).forEach(function(item){
+        item = item.trim();
+        if(item){
+            var type = 'debug';
+            item = item.replace(LOG_TYPE_REG, function(m, $1){
+                type = LOG_VALUE_MAP[$1] || type;
+                return '';
+            });
+            self.emit(type, item);
+            if(self.log.hasOwnProperty(type)){
+                self.log[type].push(item);
+            }
+        }
+    });
 };
 
 module.exports = Monitor;

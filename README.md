@@ -2,6 +2,24 @@
 
 > capture webpage and diff the change with [phantomjs](http://phantomjs.org/)
 
+## effects
+
+### Add
+
+![element add](./demo/1409037825746-1409037838093.png)
+
+### Removed
+
+![element removed](./demo/1409037838093-1409037882033.png)
+
+### Text change
+
+![element removed](./demo/1409037882033-1409037916727.png)
+
+### Style Change
+
+![element removed](./demo/1409038130483-1409038137417.png)
+
 ## Usage
 
 ```javascript
@@ -9,10 +27,9 @@ var Monitor = require('page-monitor');
 
 var url = 'http://www.google.com';
 var monitor = new Monitor(url);
-monitor.capture(function(code, log){
-    // code: phantom exit code
-    // log: console.log from phantom
-    console.log('done');
+monitor.capture(function(code){
+    console.log(monitor.log); // from phantom
+    console.log('done, exit [' + code + ']');
 });
 ```
 
@@ -62,18 +79,15 @@ var defaultSettings = {
 };
 ```
 
-### monitor.capture(callback, diff);
+### monitor.capture(callback [, noDiff]);
 
 caputure webpage and save screenshot, then diff with last save.
 
-> default value of param ``diff`` is true, using ``false`` to capture only.
-
 ```javascript
 var monitor = new Monitor(url, options);
-monitor.capture(function(code, log){
-    // code: phantom exit code
-    // log: console.log from phantom
-    console.log('done');
+monitor.capture(function(code){
+    console.log(monitor.log); // from phantom
+    console.log('done, exit [' + code + ']');
 });
 ```
 
@@ -83,9 +97,26 @@ diff change between left(date.getTime()) and right(date.getTime()).
 
 ```javascript
 var monitor = new Monitor(url, options);
-monitor.diff(1408947323420, 1408947556898,function(code, log){
-    // code: phantom exit code
-    // log: console.log from phantom
-    console.log('done');
+monitor.diff(1408947323420, 1408947556898, function(code){
+    console.log(monitor.log); // from phantom
+    console.log('done, exit [' + code + ']');
 });
 ```
+
+### events
+
+```javascript
+var monitor = new Monitor(url);
+monitor.on('debug', function(msg){
+    console.log('debug:', msg);
+});
+monitor.capture(function(code){
+    console.log('done, exit [' + code + ']');
+});
+```
+
+* debug: debug from phantom
+* notice: console from webpage
+* info: info from phantom
+* warning: error from webpage
+* error: error from phantom
