@@ -77,6 +77,7 @@ function createPage(url, options, onload){
                 if(onload(page) !== false){
                     phantom.exit();
                 }
+                callback = function(){};
             }, delay);
         }
     };
@@ -195,7 +196,7 @@ function highlight(left, right, callback){
             lScreenshot, rScreenshot,
             getTimeString(left), getTimeString(right)
         ].join('|');
-        log('start highlight');
+        log('start highlight [' + url + ']');
         createPage(url, opt, function(page){
             log('highlight done');
             page.evaluate(hl, TOKEN, ret, data.diff);

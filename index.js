@@ -4,7 +4,6 @@ var fs = require('fs');
 var path = require('path');
 var Url = require('url');
 var util = require("util");
-var events = require("events");
 var DEFAULT_DATA_DIRNAME = process.cwd();
 var PHANTOMJS_SCRIPT_DIR = path.join(__dirname, 'phantomjs');
 var PHANTOMJS_SCRIPT_FILE = path.join(PHANTOMJS_SCRIPT_DIR, 'index.js');
@@ -215,6 +214,40 @@ var logTypes = (function(){
 var LOG_SPLIT_REG = new RegExp('(?:^|[\r\n]+)(?=' + logTypes + ')');
 var LOG_TYPE_REG = new RegExp('^(' + logTypes + ')');
 
+var EventEmitter = function(){
+    this._listeners = {};
+};
+
+EventEmitter.prototype.on = function(type, callback){
+    if(!this._listeners.hasOwnProperty(type)){
+        this._listeners[type] = [];
+    }
+    this._listeners[type].push(callback);
+};
+
+EventEmitter.prototype.off = function(type, callback){
+    if(this._listeners.hasOwnProperty(type)){
+        var listeners = [];
+        for(var i = 0, len = this._listeners[type].length; i < len; i++){
+            var listener = this._listeners[type][i];
+            if(listener !== callback){
+                listeners.push(listener);
+            }
+        }
+        this._listeners[type] = listeners;
+    }
+};
+
+EventEmitter.prototype.emit = function(type){
+    if(this._listeners.hasOwnProperty(type)){
+        var args = [].splice.call(arguments, 1);
+        var self = this;
+        this._listeners[type].forEach(function(callback){
+            callback.apply(self, args);
+        });
+    }
+};
+
 /**
  * Monitor Class Constructor
  * @param {String} url
@@ -222,7 +255,7 @@ var LOG_TYPE_REG = new RegExp('^(' + logTypes + ')');
  * @constructor
  */
 var Monitor = function(url, options){
-    events.EventEmitter.call(this);
+    EventEmitter.call(this);
     options = mergeSettings(options);
     this.url = options.url = url;
     this.running = false;
@@ -241,7 +274,7 @@ var Monitor = function(url, options){
 };
 
 // inherit from events.EventEmitter
-util.inherits(Monitor, events.EventEmitter);
+util.inherits(Monitor, EventEmitter);
 
 /**
  * capture webpage and diff
