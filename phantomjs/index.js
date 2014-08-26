@@ -233,6 +233,7 @@ if(mode & _.mode.CAPTURE){
     log('load: ' + url);
     createPage(url, data, function(page){
         log('loaded: ' + url);
+        page.navigationLocked = true;
         var delay = evaluate(page, data.events.beforeWalk) || 0;
         log('delay: ' + delay);
         setTimeout(function(){
