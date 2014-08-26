@@ -115,8 +115,8 @@ monitor.capture(function(code){
 });
 ```
 
-* debug: debug from phantom
-* notice: console from webpage
-* info: info from phantom
-* warning: error from webpage
-* error: error from phantom
+* ``debug``: debug from phantom
+* ``notice``: console from webpage
+* ``info``: info from phantom
+* ``warning``: error from webpage
+* ``error``: error from phantom
