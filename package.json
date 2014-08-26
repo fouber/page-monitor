@@ -1,7 +1,7 @@
 {
     "name": "page-monitor",
     "version": "0.1.2",
-    "description": "monitor pages and diff the change",
+    "description": "monitor pages and diff the dom change with phantomjs",
     "main": "index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1"
