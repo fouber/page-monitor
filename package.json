@@ -1,6 +1,6 @@
 {
     "name": "page-monitor",
-    "version": "0.1.5",
+    "version": "0.1.6",
     "description": "monitor pages and diff the dom change with phantomjs",
     "main": "index.js",
     "scripts": {

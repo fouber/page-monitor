@@ -190,7 +190,9 @@ function highlight(left, right, callback){
                     localToRemoteUrlAccessEnabled: true
                 }
             },
-            render: data.render
+            render: {
+                delay: 1000
+            }
         };
         url += [
             lScreenshot, rScreenshot,
