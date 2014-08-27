@@ -214,6 +214,12 @@ var logTypes = (function(){
 var LOG_SPLIT_REG = new RegExp('(?:^|[\r\n]+)(?=' + logTypes + ')');
 var LOG_TYPE_REG = new RegExp('^(' + logTypes + ')');
 
+/**
+ * why not use events.EventEmitter?
+ * because it can NOT emit an 'error' event,
+ * but i need, fuck off.
+ * @constructor
+ */
 var EventEmitter = function(){
     this._listeners = {};
 };
@@ -273,7 +279,7 @@ var Monitor = function(url, options){
     this.options = options;
 };
 
-// inherit from events.EventEmitter
+// inherit from EventEmitter
 util.inherits(Monitor, EventEmitter);
 
 /**
