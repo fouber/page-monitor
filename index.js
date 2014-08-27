@@ -150,7 +150,10 @@ function mergeSettings(settings){
             root: DEFAULT_DATA_DIRNAME,
             // format: '{hostname}/{port}/{pathname}/{query}{hash}'
             format: function(url, opt){
-                return opt.hostname + (opt.port ? '-' + opt.port : '') + '/' + base64(opt.path + opt.hash);
+                return [
+                    opt.hostname, (opt.port ? '-' + opt.port : ''), '/',
+                    base64(opt.path + (opt.hash || ''))
+                ].join('');
             }
         }
     };
