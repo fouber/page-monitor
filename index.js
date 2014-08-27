@@ -215,7 +215,7 @@ var LOG_SPLIT_REG = new RegExp('(?:^|[\r\n]+)(?=' + logTypes + ')');
 var LOG_TYPE_REG = new RegExp('^(' + logTypes + ')');
 
 /**
- * why not use events.EventEmitter?
+ * why not events.EventEmitter?
  * because it can NOT emit an 'error' event,
  * but i need, fuck off.
  * @constructor
