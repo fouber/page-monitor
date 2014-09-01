@@ -53,8 +53,8 @@ var defaultSettings = {
         ignoreChildrenElements: [ /* ignore children elements */ ],
         styleFilters: [ /* record styles */ ],
         attributeFilters: [ /* record attribute */ ],
-        includeSelectors: [ /* exclude selectors */ ],
-        excludeSelectors: [ /* include selectors */ ],
+        includeSelectors: [ /* include selectors */ ],
+        excludeSelectors: [ /* exclude selectors */ ],
         ignoreTextSelectors: [ /* ignore text selectors */ ],
         ignoreChildrenSelectors: [ /* ignore children selectors */ ],
         root: 'body' // root selector
