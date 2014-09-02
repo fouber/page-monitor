@@ -227,6 +227,35 @@ function init(d){
 var mode = parseInt(system.args[1]);
 log('mode: ' + mode.toString(2));
 
+function getDiffInfo(left, right, pic, changes){
+    var info = {
+        left: left,
+        right: right,
+        screenshot: pic,
+        count: {
+            add: 0,
+            remove: 0,
+            style: 0,
+            text: 0
+        }
+    };
+    changes.forEach(function(item){
+        if(item.type & data.diff.changeType.ADD){
+            info.count.add++;
+        }
+        if(item.type & data.diff.changeType.REMOVE){
+            info.count.remove++;
+        }
+        if(item.type & data.diff.changeType.STYLE){
+            info.count.style++;
+        }
+        if(item.type & data.diff.changeType.TEXT){
+            info.count.text++;
+        }
+    });
+    return info;
+}
+
 if(mode & _.mode.CAPTURE){
     var url = system.args[2];
     var needDiff = (mode & _.mode.DIFF) > 0;
@@ -281,8 +310,7 @@ if(mode & _.mode.CAPTURE){
                             if(ret.length === 0) {
                                 log('no change', _.log.WARNING);
                             } else {
-                                info.latest = latest;
-                                info.diff = pic;
+                                info.diff = getDiffInfo(latest, now, pic, ret);
                                 log(JSON.stringify(info), _.log.INFO);
                             }
                             phantom.exit();
@@ -306,7 +334,7 @@ if(mode & _.mode.CAPTURE){
         if(ret.length === 0) {
             log('no change', _.log.WARNING);
         } else {
-            var info = { left: left, right: right, diff: pic };
+            var info = { diff: getDiffInfo(left, right, pic, ret) };
             log(JSON.stringify(info), _.log.INFO);
         }
         phantom.exit();
