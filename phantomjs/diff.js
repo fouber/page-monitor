@@ -36,7 +36,46 @@ function isMatch(left, right){
 }
 
 /**
- *
+ * Longest common subsequence
+ * @param {Array} left
+ * @param {Array} right
+ * @param {Function} match
+ * @returns {Array}
+ * @constructor
+ */
+function LCS(left, right, match){
+    var lastLine = [];
+    var currLine = [];
+    left.forEach(function(old){
+        right.forEach(function(cur, x){
+            if(match(old, cur)){
+                var sequence = (lastLine[x-1] || []).slice(0);
+                sequence.push({ l: old, r: cur });
+                currLine[x] = sequence;
+            } else {
+                var lSeq = currLine[x-1];
+                var tSeq = lastLine[x];
+                if(lSeq && tSeq){
+                    if(lSeq.length > tSeq.length){
+                        currLine[x] = lSeq.slice(0);
+                    } else {
+                        currLine[x] = tSeq.slice(0);
+                    }
+                } else if(lSeq) {
+                    currLine[x] = lSeq.slice(0);
+                } else if(tSeq) {
+                    currLine[x] = tSeq.slice(0);
+                }
+            }
+        });
+        lastLine = currLine;
+        currLine = [];
+    });
+    return (lastLine.pop() || []);
+}
+
+/**
+ * diff change
  * @type {exports}
  * @returns {Array}
  */
@@ -49,42 +88,40 @@ var diff = function(left, right, opt){
     if(left.style !== right.style){
         change.type |= opt.changeType.STYLE;
     }
-    var start = 0;
-    right.child.forEach(function(cur){
-        for(var i = start; i < left.child.length; i++){
-            var old = left.child[i];
-            if(isMatch(old, cur)){
-                Object.defineProperty(old, 'matched', {
-                    value: true,
-                    enumerable: false,
-                    writable: false
-                });
-                if(cur.name === '#'){
-                    if(old.text !== cur.text){
-                        change.type |= opt.changeType.TEXT;
-                    }
-                } else {
-                    var r = diff(old, cur, opt);
-                    ret = ret.concat(r);
-                }
-                start = i + 1;
-                return;
-            }
-        }
+    LCS(left.child, right.child, isMatch).forEach(function(node){
+        var old = node.l;
+        var cur = node.r;
+        cur.matched = old.matched = true;
         if(cur.name === '#'){
-            change.type |= opt.changeType.TEXT;
+            if(old.text !== cur.text){
+                // match node, but contents are different.
+                change.type |= opt.changeType.TEXT;
+            }
         } else {
-            ret.push({
-                type: opt.changeType.ADD,
-                node: cur
-            });
+            // recursive
+            ret = ret.concat(diff(old, cur, opt));
         }
     });
-    left.child.forEach(function(item){
-        if(!item.matched){
+    right.child.forEach(function(node){
+        if(!node.matched){
+            if(node.name === '#'){
+                // add text, but count as text change
+                change.type |= opt.changeType.TEXT;
+            } else {
+                // add element
+                ret.push({
+                    type: opt.changeType.ADD,
+                    node: node
+                });
+            }
+        }
+    });
+    left.child.forEach(function(node){
+        if(!node.matched){
+            // removed element
             ret.push({
                 type: opt.changeType.REMOVE,
-                node: item
+                node: node
             });
         }
     });
