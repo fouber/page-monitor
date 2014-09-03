@@ -157,7 +157,10 @@ function mergeSettings(settings){
         },
         path: {
             root: DEFAULT_DATA_DIRNAME, // data, screenshot save path
-            format: function(url, opt){ // save path format, it can be a string like this: '{hostname}/{port}/{pathname}/{query}{hash}'
+
+            // save path format, it can be a string
+            // like this: '{hostname}/{port}/{pathname}/{query}{hash}'
+            format: function(url, opt){
                 return [
                     opt.hostname, (opt.port ? '-' + opt.port : ''), '/',
                     base64(opt.path + (opt.hash || ''))

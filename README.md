@@ -63,16 +63,27 @@ var defaultSettings = {
         highlight: { /* highlight styles */ }
     },
     events: {
-        init: function(token){ /* page.onInitialized */ },
-        beforeWalk: function(token){ /* before walk dom tree */ }
+        init: function(token){
+            /*
+                do something before page init,
+                @see http://phantomjs.org/api/webpage/handler/on-initialized.html
+            */
+        },
+        beforeWalk: function(token){
+            /*
+                do something before walk dom tree,
+                retrun a number to delay screenshot
+             */
+        }
     },
     render: {
-        delay: 1000 // delay before capture
+        delay: 1000 // delay before screenshot, (ms)
     },
     path: {
-        root: DEFAULT_DATA_DIRNAME,   //file save path
-        // format: '{hostname}/{port}/{pathname}/{query}{hash}'
-        format: function(url, opt){   //path format
+        root: process.cwd(),   // data, screenshot save path
+        // save path format, it can be a string
+        // like this: '{hostname}/{port}/{pathname}/{query}{hash}'
+        format: function(url, opt){
             return opt.hostname + (opt.port ? '-' + opt.port : '') + '/' + base64(opt.path);
         }
     }
