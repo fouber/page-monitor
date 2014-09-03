@@ -238,7 +238,7 @@ var EventEmitter = function(){
 };
 
 /**
- *
+ * add event listener
  * @param {string} type
  * @param {Function} callback
  */
@@ -249,6 +249,11 @@ EventEmitter.prototype.on = function(type, callback){
     this._listeners[type].push(callback);
 };
 
+/**
+ * remove event listener
+ * @param {string} type
+ * @param {Function} callback
+ */
 EventEmitter.prototype.off = function(type, callback){
     if(this._listeners.hasOwnProperty(type)){
         var listeners = [];
@@ -262,6 +267,10 @@ EventEmitter.prototype.off = function(type, callback){
     }
 };
 
+/**
+ * dispatch event
+ * @param {string} type
+ */
 EventEmitter.prototype.emit = function(type){
     if(this._listeners.hasOwnProperty(type)){
         var args = [].splice.call(arguments, 1);
