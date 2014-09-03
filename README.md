@@ -38,7 +38,7 @@ monitor.capture(function(code){
 ### Monitor
 
 ```javascript
-var monitor = new Monitor(url, options);
+var monitor = new Monitor(url [, options]);
 ```
 
 options:
