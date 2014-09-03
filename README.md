@@ -46,8 +46,8 @@ options:
 ```javascript
 
 var defaultSettings = {
-    cli: { /* phantomjs cli options */ },
-    page: { /* webpage settings */ },
+    cli: { /* phantom cli options, @see http://phantomjs.org/api/command-line.html */ },
+    page: { /* webpage settings, @see http://phantomjs.org/api/webpage/ */ },
     walk: {
         invisibleElements : [ /* invisible elements */ ],
         ignoreChildrenElements: [ /* ignore children elements */ ],
@@ -60,7 +60,7 @@ var defaultSettings = {
         root: 'body' // root selector
     },
     diff: {
-        highlight: { /* highlight styles */ }
+        highlight: { /* highlight mask styles */ }
     },
     events: {
         init: function(token){
