@@ -1,3 +1,9 @@
+/**
+ * equal
+ * @param {Object} left
+ * @param {Object} right
+ * @returns {boolean}
+ */
 function equal(left, right){
     var type = typeof left;
     if(type === typeof right){
@@ -26,10 +32,10 @@ function equal(left, right){
 }
 
 /**
- *
- * @param left
- * @param right
- * @returns {boolean|*}
+ * match
+ * @param {Object} left
+ * @param {Object} right
+ * @returns {boolean}
  */
 function isMatch(left, right){
     return (left.name === right.name) && equal(left.attr, right.attr);
@@ -76,7 +82,9 @@ function LCS(left, right, match){
 
 /**
  * diff change
- * @type {exports}
+ * @param {Object} left
+ * @param {Object} right
+ * @param {Object} opt
  * @returns {Array}
  */
 var diff = function(left, right, opt){

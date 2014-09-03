@@ -56,11 +56,11 @@ function base64(data){
  */
 function mergeSettings(settings){
     var defaultSettings = {
-        cli: {
+        cli: {  // phantom cli options, @see http://phantomjs.org/api/command-line.html
             '--max-disk-cache-size' : '0',
             '--disk-cache' : 'false'
         },
-        page: {
+        page: { // webpage settings, @see http://phantomjs.org/api/webpage/
             viewportSize: {
                 width: 320,
                 height: 568
@@ -102,7 +102,7 @@ function mergeSettings(settings){
                 'text-decoration', 'text-indent', 'text-shadow', 'vertical-align', 'visibility',
                 'position'
             ],
-            attributeFilters: [ 'id', 'class' ],
+            attributeFilters: [ 'id', 'class' ],    // attributes to mark an element
             includeSelectors: [],
             excludeSelectors: [],
             ignoreTextSelectors: [],
@@ -110,7 +110,7 @@ function mergeSettings(settings){
             root: 'body'
         },
         diff: {
-            highlight: {
+            highlight: {    // highlight mask styles
                 add: {
                     title: '新增(Add)',
                     backgroundColor: 'rgba(127, 255, 127, 0.3)',
@@ -135,21 +135,29 @@ function mergeSettings(settings){
                     backgroundColor: 'rgba(255, 255, 0, 0.3)',
                     borderColor: '#f90',
                     color: '#c30'
-                },
-                textAdd: {}
+                }
             }
         },
         events: {
-            init: function(token){},
-            beforeWalk: function(token){}
+            init: function(token){
+                /*
+                    do something before page init,
+                    @see http://phantomjs.org/api/webpage/handler/on-initialized.html
+                */
+            },
+            beforeWalk: function(token){
+                /*
+                    do something before walk dom tree,
+                    retrun a number to delay screenshot
+                 */
+            }
         },
         render: {
-            delay: 1000
+            delay: 1000 // delay before screenshot, (ms)
         },
         path: {
-            root: DEFAULT_DATA_DIRNAME,
-            // format: '{hostname}/{port}/{pathname}/{query}{hash}'
-            format: function(url, opt){
+            root: DEFAULT_DATA_DIRNAME, // data, screenshot save path
+            format: function(url, opt){ // save path format, it can be a string like this: '{hostname}/{port}/{pathname}/{query}{hash}'
                 return [
                     opt.hostname, (opt.port ? '-' + opt.port : ''), '/',
                     base64(opt.path + (opt.hash || ''))
@@ -157,6 +165,8 @@ function mergeSettings(settings){
             }
         }
     };
+
+    // special handling of events
     if(settings && settings.events){
         _.map(settings.events, function(key, value){
             if(typeof value === 'function'){
@@ -227,6 +237,11 @@ var EventEmitter = function(){
     this._listeners = {};
 };
 
+/**
+ *
+ * @param {string} type
+ * @param {Function} callback
+ */
 EventEmitter.prototype.on = function(type, callback){
     if(!this._listeners.hasOwnProperty(type)){
         this._listeners[type] = [];

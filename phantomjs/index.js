@@ -1,8 +1,14 @@
+/**
+ * log
+ * @param {string} msg
+ * @param {number} type
+ */
 var log = function(msg, type){
     type = type || _.log.DEBUG;
     console.log(type + msg);
 };
 
+// on error
 phantom.onError = function(msg, trace) {
     var msgStack = [ msg ];
     if (trace && trace.length) {
@@ -15,16 +21,17 @@ phantom.onError = function(msg, trace) {
     phantom.exit(1);
 };
 
-var _ = require('../util.js');
-
+// deps
 var system = require('system');
 var webpage = require('webpage');
 var fs = require('fs');
 
+var _ = require('../util.js');
 var diff = require('./diff.js');
 var walk = require('./walk.js');
 var hl = require('./highlight.js');
 
+// generate communication token
 var TOKEN =  (function unique(){
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
         var r = Math.random()*16 | 0;
@@ -32,6 +39,11 @@ var TOKEN =  (function unique(){
     });
 })();
 
+/**
+ * configure phantomjs webpage settings
+ * @param {webpage} page
+ * @param {*} options
+ */
 function settings(page, options){
     _.map(options, function(key, value){
         if(key === 'settings'){
@@ -46,6 +58,13 @@ function settings(page, options){
     });
 }
 
+/**
+ * eval script in webpage
+ * @param {webpage} page
+ * @param {Function} fn
+ * @param {Array} args
+ * @returns {Object}
+ */
 function evaluate(page, fn, args){
     var type = typeof fn;
     var arr = [];
@@ -66,6 +85,12 @@ function evaluate(page, fn, args){
     return page.evaluate.apply(page, arr);
 }
 
+/**
+ * create webpage and bind events
+ * @param {string} url
+ * @param {Object} options
+ * @param {Function} onload
+ */
 function createPage(url, options, onload){
     var page = webpage.create();
     var timer, count = 0,
@@ -140,17 +165,28 @@ function createPage(url, options, onload){
     return page;
 }
 
+// constant values
 var LATEST_LOG_FILENAME = 'latest.log';
 var SCREENSHOT_FILENAME = 'screenshot.png';
 var INFO_FILENAME = 'info.json';
 var TREE_FILENAME = 'tree.json';
 var HIGHLIGHT_HTML_FILENAME = 'highlight.html';
 
+/**
+ * read tree object by dirname
+ * @param {string} dir
+ * @returns {Object}
+ */
 function getTree(dir){
     var file = ROOT + '/' + dir + '/' + TREE_FILENAME;
     return JSON.parse(fs.read(file));
 }
 
+/**
+ * pad a numeric string to two digits
+ * @param {string} str
+ * @returns {string}
+ */
 function pad(str){
     return ('0' + str).substr(-2);
 }
@@ -171,8 +207,21 @@ function getTimeString(num){
     return day + ' ' + time;
 }
 
+/**
+ * diff and highlight
+ * @param {string|number|Date} left
+ * @param {string|number|Date} right
+ * @param {Function} callback
+ */
 function highlight(left, right, callback){
     log('diff [' + left + '] width [' + right + ']');
+    // convert into number
+    if(_.is(left, 'Date')){
+        left = left.getTime();
+    }
+    if(_.is(right, 'Date')){
+        right = right.getTime();
+    }
     // TODO check diffed
     var lTree = getTree(left);
     var rTree = getTree(right);
@@ -213,6 +262,10 @@ function highlight(left, right, callback){
 var data = {};
 var ROOT = '';
 
+/**
+ * init options
+ * @param {Object} d
+ */
 function init(d){
     data = d;
     ROOT = data.path.dir;
@@ -224,14 +277,30 @@ function init(d){
     };
 }
 
+// run mode, see _.mode@../utils.js
 var mode = parseInt(system.args[1]);
 log('mode: ' + mode.toString(2));
 
-function getDiffInfo(left, right, pic, changes){
+/**
+ * get result info
+ * @param {string|number|Date} left
+ * @param {string|number|Date} right
+ * @param {string} screenshot screenshot save path
+ * @param {Array} changes
+ * @returns {{left: string|number, right: string|number, screenshot: string, count: {add: number, remove: number, style: number, text: number}}}
+ */
+function getDiffInfo(left, right, screenshot, changes){
+    // convert into number
+    if(_.is(left, 'Date')){
+        left = left.getTime();
+    }
+    if(_.is(right, 'Date')){
+        right = right.getTime();
+    }
     var info = {
         left: left,
         right: right,
-        screenshot: pic,
+        screenshot: screenshot,
         count: {
             add: 0,
             remove: 0,
@@ -256,21 +325,21 @@ function getDiffInfo(left, right, pic, changes){
     return info;
 }
 
-if(mode & _.mode.CAPTURE){
+if(mode & _.mode.CAPTURE){ // capture
     var url = system.args[2];
-    var needDiff = (mode & _.mode.DIFF) > 0;
+    var needDiff = (mode & _.mode.DIFF) > 0;    // diff also
     if(needDiff) log('need diff');
     init(JSON.parse(system.args[3]));
     log('load: ' + url);
-    createPage(url, data, function(page){
+    createPage(url, data, function(page){   //create page
         log('loaded: ' + url);
-        page.navigationLocked = true;
-        var delay = evaluate(page, data.events.beforeWalk) || 0;
+        page.navigationLocked = true;   // lock navigation
+        var delay = evaluate(page, data.events.beforeWalk) || 0;    // do sth befor walk
         log('delay: ' + delay);
-        setTimeout(function(){
+        setTimeout(function(){  // delay
             // walk
             log('walk tree');
-            var res = page.evaluate(walk, TOKEN, data.walk);
+            var res = page.evaluate(walk, TOKEN, data.walk);    //walk tree
             var json = JSON.stringify(res);
 
             // latest
@@ -282,10 +351,9 @@ if(mode & _.mode.CAPTURE){
                 latestTree = fs.read(latestDir + '/' + TREE_FILENAME);
             }
 
-            // save
-            if(latestTree && latestTree === json){
+            if(latestTree && latestTree === json){ // nochange
                 phantom.exit();
-            } else {
+            } else {    // has change, save data
                 var now = Date.now();
                 var dir = ROOT + '/' + now;
                 if(fs.makeDirectory(dir)){
@@ -304,8 +372,7 @@ if(mode & _.mode.CAPTURE){
                         dir: dir,
                         screenshot: dir + '/' + SCREENSHOT_FILENAME
                     };
-                    // diff
-                    if(needDiff && latestTree){
+                    if(needDiff && latestTree){ // diff
                         highlight(latest, now, function(ret, pic){
                             if(ret.length === 0) {
                                 log('no change', _.log.WARNING);
@@ -326,7 +393,7 @@ if(mode & _.mode.CAPTURE){
         }, delay);
         return false;
     });
-} else if(mode & _.mode.DIFF){
+} else if(mode & _.mode.DIFF){ // diff only
     var left = system.args[2];
     var right = system.args[3];
     init(JSON.parse(system.args[4]));
