@@ -93,6 +93,20 @@ function evaluate(page, fn, args){
  */
 function createPage(url, options, onload){
     var page = webpage.create();
+
+    // remove application cache db
+    // @see https://github.com/fouber/page-monitor/issues/3
+    if(options.cleanApplicationCache){
+        var path = page.offlineStoragePath + '/ApplicationCache.db';
+        if(fs.isFile(path)){
+            if(fs.remove(path) === false){
+                log('unable to remove application cache [' + path + ']', _.log.WARNING);
+            } else {
+                log('removed application cache [' + path + ']');
+            }
+        }
+    }
+
     var timer, count = 0,
         delay = options.render.delay;
     var callback = function(){

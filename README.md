@@ -41,54 +41,7 @@ monitor.capture(function(code){
 var monitor = new Monitor(url [, options]);
 ```
 
-options:
-
-```javascript
-
-var defaultSettings = {
-    cli: { /* phantom cli options, @see http://phantomjs.org/api/command-line.html */ },
-    page: { /* webpage settings, @see http://phantomjs.org/api/webpage/ */ },
-    walk: {
-        invisibleElements : [ /* invisible elements */ ],
-        ignoreChildrenElements: [ /* ignore children elements */ ],
-        styleFilters: [ /* record styles */ ],
-        attributeFilters: [ /* record attribute */ ],
-        includeSelectors: [ /* include selectors */ ],
-        excludeSelectors: [ /* exclude selectors */ ],
-        ignoreTextSelectors: [ /* ignore text selectors */ ],
-        ignoreChildrenSelectors: [ /* ignore children selectors */ ],
-        root: 'body' // root selector
-    },
-    diff: {
-        highlight: { /* highlight mask styles */ }
-    },
-    events: {
-        init: function(token){
-            /*
-                do something before page init,
-                @see http://phantomjs.org/api/webpage/handler/on-initialized.html
-            */
-        },
-        beforeWalk: function(token){
-            /*
-                do something before walk dom tree,
-                retrun a number to delay screenshot
-             */
-        }
-    },
-    render: {
-        delay: 1000 // delay before screenshot, (ms)
-    },
-    path: {
-        root: process.cwd(),   // data, screenshot save path
-        // save path format, it can be a string
-        // like this: '{hostname}/{port}/{pathname}/{query}{hash}'
-        format: function(url, opt){
-            return opt.hostname + (opt.port ? '-' + opt.port : '') + '/' + base64(opt.path);
-        }
-    }
-};
-```
+see the default options [here](https://github.com/fouber/page-monitor/blob/master/index.js#L58-L170) , you can override any option for your monitoring.
 
 ### monitor.capture(callback [, noDiff]);
 

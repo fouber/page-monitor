@@ -56,11 +56,18 @@ function base64(data){
  */
 function mergeSettings(settings){
     var defaultSettings = {
-        cli: {  // phantom cli options, @see http://phantomjs.org/api/command-line.html
+        // remove phantomejs application cache before capture
+        // @see https://github.com/fouber/page-monitor/issues/3
+        cleanApplicationCache: false,
+        // phantom cli options
+        // @see http://phantomjs.org/api/command-line.html
+        cli: {
             '--max-disk-cache-size' : '0',
             '--disk-cache' : 'false'
         },
-        page: { // webpage settings, @see http://phantomjs.org/api/webpage/
+        // webpage settings
+        // @see http://phantomjs.org/api/webpage/
+        page: {
             viewportSize: {
                 width: 320,
                 height: 568
@@ -102,7 +109,8 @@ function mergeSettings(settings){
                 'text-decoration', 'text-indent', 'text-shadow', 'vertical-align', 'visibility',
                 'position'
             ],
-            attributeFilters: [ 'id', 'class' ],    // attributes to mark an element
+            // attributes to mark an element
+            attributeFilters: [ 'id', 'class' ],
             includeSelectors: [],
             excludeSelectors: [],
             ignoreTextSelectors: [],
@@ -110,7 +118,8 @@ function mergeSettings(settings){
             root: 'body'
         },
         diff: {
-            highlight: {    // highlight mask styles
+            // highlight mask styles
+            highlight: {
                 add: {
                     title: '新增(Add)',
                     backgroundColor: 'rgba(127, 255, 127, 0.3)',
@@ -153,10 +162,10 @@ function mergeSettings(settings){
             }
         },
         render: {
-            delay: 1000 // delay before screenshot, (ms)
+            delay: 1000 // delay(ms) before screenshot.
         },
         path: {
-            root: DEFAULT_DATA_DIRNAME, // data, screenshot save path
+            root: DEFAULT_DATA_DIRNAME, // data and screenshot save path root
 
             // save path format, it can be a string
             // like this: '{hostname}/{port}/{pathname}/{query}{hash}'
