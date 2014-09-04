@@ -376,8 +376,7 @@ if(mode & _.mode.CAPTURE){ // capture
                     fs.write(dir + '/' + TREE_FILENAME, json);
                     fs.write(dir + '/' + INFO_FILENAME, JSON.stringify({
                         time: now,
-                        url: url,
-                        settings: data
+                        url: url
                     }));
                     fs.write(ROOT + '/' + LATEST_LOG_FILENAME, now);
                     page.close();
