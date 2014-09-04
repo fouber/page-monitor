@@ -41,7 +41,7 @@ monitor.capture(function(code){
 var monitor = new Monitor(url [, options]);
 ```
 
-see the default options [here](https://github.com/fouber/page-monitor/blob/master/index.js#L58-L170) , you can override any option for your monitoring.
+see the default options here: [https://github.com/fouber/page-monitor/blob/master/index.js](https://github.com/fouber/page-monitor/blob/master/index.js#L57-L179) , you can override any option for your monitoring.
 
 ### monitor.capture(callback [, noDiff]);
 
