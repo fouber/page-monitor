@@ -20,7 +20,7 @@
 
 ![element removed](./demo/1409038130483-1409038137417.png)
 
-## Make an UI to show diff of history
+## Make UI to show diffs of history
 
 ![ui](./demo/ui.png)
 
