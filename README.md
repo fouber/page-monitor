@@ -24,6 +24,8 @@
 
 ![ui](./demo/ui.png)
 
+> I have made one, see: https://github.com/fouber/pmui
+
 ## Usage
 
 ```javascript
