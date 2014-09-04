@@ -22,9 +22,9 @@
 
 ## Make UI to show diffs of history
 
-![ui](./demo/ui.png)
+> https://github.com/fouber/pmui
 
-> I have made one, see: https://github.com/fouber/pmui
+![ui](./demo/ui.png)
 
 ## Usage
 
