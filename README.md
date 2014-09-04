@@ -24,7 +24,7 @@
 
 > https://github.com/fouber/pmui
 
-![ui](./demo/ui.png)
+![ui](./demo/ui.png?v=2)
 
 ## Usage
 
