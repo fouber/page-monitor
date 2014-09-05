@@ -304,10 +304,6 @@ var Monitor = function(url, options){
     options = mergeSettings(options);
     this.url = options.url = url;
     this.running = false;
-    var log = this.log = {};
-    _.map(_.log, function(key){
-        log[key.toLowerCase()] = [];
-    });
     options.path.dir = path.join(
         options.path.root || DEFAULT_DATA_DIRNAME,
         format(options.path.format, url, Url.parse(url))
@@ -316,10 +312,22 @@ var Monitor = function(url, options){
         mkdirp(options.path.dir);
     }
     this.options = options;
+    this._initLog();
 };
 
 // inherit from EventEmitter
 util.inherits(Monitor, EventEmitter);
+
+/**
+ * init log
+ * @private
+ */
+Monitor.prototype._initLog = function(){
+    var log = this.log = {};
+    _.map(_.log, function(key){
+        log[key.toLowerCase()] = [];
+    });
+};
 
 /**
  * capture webpage and diff
@@ -335,6 +343,7 @@ Monitor.prototype.capture = function(callback, noDiff){
     if(!noDiff){
         type |= _.mode.DIFF;
     }
+    this._initLog();
     return this._phantom(
         [
             PHANTOMJS_SCRIPT_FILE,
@@ -362,6 +371,7 @@ Monitor.prototype.diff = function(left, right, callback){
     this.running = true;
     var self = this;
     var type = _.mode.DIFF;
+    this._initLog();
     return this._phantom(
         [
             PHANTOMJS_SCRIPT_FILE,
