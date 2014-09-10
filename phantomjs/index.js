@@ -25,6 +25,8 @@ phantom.onError = function(msg, trace) {
 var system = require('system');
 var webpage = require('webpage');
 var fs = require('fs');
+var os = system.os;
+var IS_WIN = os.name.toLocaleLowerCase() === 'windows';
 
 var _ = require('../util.js');
 var diff = require('./diff.js');
@@ -246,7 +248,7 @@ function highlight(left, right, callback){
         var rScreenshot = ROOT + '/' + right + '/' + SCREENSHOT_FILENAME;
         var diffFilename = ROOT + '/diff/' + left + '-' + right + '.png';
         var html = phantom.libraryPath + '/' + HIGHLIGHT_HTML_FILENAME;
-        var url = 'file://' + html + '?';
+        var url = 'file://' + (IS_WIN ? '/' : '') + html + '?';
         var opt = {
             page: {
                 settings: {
