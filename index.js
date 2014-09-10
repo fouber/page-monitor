@@ -21,7 +21,7 @@ function mkdirp(path, mode){
         mode = 511 & (~process.umask());
     }
     if(_exists(path)) return;
-    path.split('/').reduce(function(prev, next) {
+    path.replace(/\\/g, '/').split('/').reduce(function(prev, next) {
         if(prev && !_exists(prev)) {
             fs.mkdirSync(prev, mode);
         }
