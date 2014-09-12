@@ -57,6 +57,52 @@ _.escapeReg = function(str){
 };
 
 /**
+ * pad a numeric string to two digits
+ * @param {string} str
+ * @returns {string}
+ */
+_.pad = function(str){
+    return ('0' + str).substr(-2);
+};
+
+/**
+ * convert millisecond into string like `2014-09-12 14:23:03`
+ * @param {Number} num
+ * @returns {string}
+ */
+_.getTimeString = function(num){
+    var d;
+    if(_.is(num, 'Date')){
+        d = num;
+    } else {
+        d = new Date();
+        d.setTime(num);
+    }
+    var day = [
+        d.getFullYear(),
+        _.pad(d.getMonth() + 1),
+        _.pad(d.getDate())
+    ].join('-');
+    var time = [
+        _.pad(d.getHours()),
+        _.pad(d.getMinutes()),
+        _.pad(d.getSeconds())
+    ].join(':');
+    return day + ' ' + time;
+};
+
+/**
+ * generate UUID
+ * @returns {string}
+ */
+_.unique = function(){
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random()*16 | 0;
+        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+};
+
+/**
  * run mode, capture or diff or both
  * @type {{CAPTURE: number, DIFF: number}}
  */

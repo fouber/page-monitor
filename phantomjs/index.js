@@ -31,15 +31,17 @@ var IS_WIN = os.name.toLocaleLowerCase() === 'windows';
 var _ = require('../util.js');
 var diff = require('./diff.js');
 var walk = require('./walk.js');
-var hl = require('./highlight.js');
+var highlight = require('./highlight.js');
 
 // generate communication token
-var TOKEN =  (function unique(){
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = Math.random()*16 | 0;
-        return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-    });
-})();
+var TOKEN = _.unique();
+
+// constant values
+var LATEST_LOG_FILENAME = 'latest.log';
+var SCREENSHOT_FILENAME = 'screenshot.png';
+var INFO_FILENAME = 'info.json';
+var TREE_FILENAME = 'tree.json';
+var HIGHLIGHT_HTML_FILENAME = 'highlight.html';
 
 /**
  * configure phantomjs webpage settings
@@ -115,9 +117,7 @@ function createPage(url, options, onload){
         clearTimeout(timer);
         if(count === 0){
             timer = setTimeout(function(){
-                if(onload(page) !== false){
-                    phantom.exit();
-                }
+                onload(page);
                 callback = function(){};
             }, delay);
         }
@@ -181,244 +181,175 @@ function createPage(url, options, onload){
     return page;
 }
 
-// constant values
-var LATEST_LOG_FILENAME = 'latest.log';
-var SCREENSHOT_FILENAME = 'screenshot.png';
-var INFO_FILENAME = 'info.json';
-var TREE_FILENAME = 'tree.json';
-var HIGHLIGHT_HTML_FILENAME = 'highlight.html';
-
-/**
- * read tree object by dirname
- * @param {string} dir
- * @returns {Object}
- */
-function getTree(dir){
-    var file = ROOT + '/' + dir + '/' + TREE_FILENAME;
-    return JSON.parse(fs.read(file));
-}
-
-/**
- * pad a numeric string to two digits
- * @param {string} str
- * @returns {string}
- */
-function pad(str){
-    return ('0' + str).substr(-2);
-}
-
-function getTimeString(num){
-    var d = new Date();
-    d.setTime(num);
-    var day = [
-        d.getFullYear(),
-        pad(d.getMonth() + 1),
-        pad(d.getDate())
-    ].join('-');
-    var time = [
-        pad(d.getHours()),
-        pad(d.getMinutes()),
-        pad(d.getSeconds())
-    ].join(':');
-    return day + ' ' + time;
-}
-
-/**
- * diff and highlight
- * @param {string|number|Date} left
- * @param {string|number|Date} right
- * @param {Function} callback
- */
-function highlight(left, right, callback){
-    log('diff [' + left + '] width [' + right + ']');
-    // convert into number
-    if(_.is(left, 'Date')){
-        left = left.getTime();
-    }
-    if(_.is(right, 'Date')){
-        right = right.getTime();
-    }
-    // TODO check diffed
-    var lTree = getTree(left);
-    var rTree = getTree(right);
-    var ret = diff(lTree, rTree, data.diff);
-    if(ret.length){
-        log('has ' + ret.length + ' changes');
-        var lScreenshot = ROOT + '/' + left + '/' + SCREENSHOT_FILENAME;
-        var rScreenshot = ROOT + '/' + right + '/' + SCREENSHOT_FILENAME;
-        var diffFilename = ROOT + '/diff/' + left + '-' + right + '.png';
-        var html = phantom.libraryPath + '/' + HIGHLIGHT_HTML_FILENAME;
-        var url = 'file://' + (IS_WIN ? '/' : '') + html + '?';
-        var opt = {
-            page: {
-                settings: {
-                    localToRemoteUrlAccessEnabled: true
-                }
-            },
-            render: {
-                delay: 1000
-            }
-        };
-        url += [
-            lScreenshot, rScreenshot,
-            getTimeString(left), getTimeString(right)
-        ].join('|');
-        log('start highlight [' + url + ']');
-        createPage(url, opt, function(page){
-            log('highlight done');
-            page.evaluate(hl, TOKEN, ret, data.diff);
-            page.render(diffFilename);
-            callback(ret, diffFilename);
-        });
-    } else {
-        callback(ret);
-    }
-}
-
-var data = {};
-var ROOT = '';
-
-/**
- * init options
- * @param {Object} d
- */
-function init(d){
-    data = d;
-    ROOT = data.path.dir;
-    data.diff.changeType = {
+var M = function(options){
+    this.token = TOKEN;
+    this.options = options;
+    this.options.diff.changeType = {
         ADD:    1,  // 0001
         REMOVE: 2,  // 0010
         STYLE:  4,  // 0100
         TEXT:   8   // 1000
     };
-}
+    this.root = options.path.dir;
+    this.latest = this.root + '/' + LATEST_LOG_FILENAME;
+};
+
+M.prototype.getLatestTree = function(){
+    if(fs.exists(this.latest)){
+        var time = fs.read(this.latest).trim();
+        if(time){
+            var tree = this.root + '/' + time + '/' + TREE_FILENAME;
+            if(fs.exists(tree)){
+                var content = fs.read(tree).trim();
+                return {
+                    time: time,
+                    file: tree,
+                    content: content
+                };
+            }
+        }
+    }
+    return false;
+};
+
+M.prototype.save = function(page, url, tree, time){
+    time = time || Date.now();
+    var dir = this.root + '/' + time;
+    if(fs.makeDirectory(dir)){
+        var screenshot = dir + '/' + SCREENSHOT_FILENAME;
+        page.render(screenshot);
+        fs.write(dir + '/' + TREE_FILENAME, json);
+        fs.write(dir + '/' + INFO_FILENAME, JSON.stringify({
+            time: time,
+            url: url
+        }));
+        fs.write(this.latest, time);
+        page.close();
+        return {
+            time: time,
+            dir: dir,
+            screenshot: screenshot
+        };
+    } else {
+        throw new Error('unable to make directory[' + dir + ']');
+    }
+};
+
+M.prototype.highlight = function(left, right, diff, callback){
+    log('diff [' + left + '] width [' + right + '] has ' + diff.length + ' changes');
+    var lScreenshot = this.root + '/' + left + '/' + SCREENSHOT_FILENAME;
+    var rScreenshot = this.root + '/' + right + '/' + SCREENSHOT_FILENAME;
+    var dScreenshot = this.root + '/diff/' + left + '-' + right + '.png';
+    var html = phantom.libraryPath + '/' + HIGHLIGHT_HTML_FILENAME;
+    var url = 'file://' + (IS_WIN ? '/' : '') + html + '?';
+    var opt = {
+        page : {
+            settings: {
+                localToRemoteUrlAccessEnabled: true
+            }
+        },
+        render: {
+            delay: 1000
+        }
+    };
+    url += [
+        lScreenshot, rScreenshot,
+        _.getTimeString(left), _.getTimeString(right)
+    ].join('|');
+    log('start highlight [' + url + ']');
+    var self = this, options = self.options;
+    createPage(url, opt, function(page){
+        log('highlight done');
+        var info = {
+            left: left,
+            right: right,
+            screenshot: dScreenshot,
+            count: page.evaluate(highlight, self.token, diff, options.diff)
+        };
+        setTimeout(function(){
+            page.render(dScreenshot);
+            callback(info);
+        }, 200);
+    });
+};
+
+M.prototype.capture = function(url, needDiff){
+    if(needDiff) log('need diff');
+    var self = this,
+        options = self.options;
+    log('loading: ' + url);
+    createPage(url, options, function(page){
+        log('loaded: ' + url);
+        page.navigationLocked = true;
+        var delay = evaluate(page, options.events.beforeWalk) || 0;
+        log('delay before render: ' + delay + 'ms');
+        setTimeout(function(){  // delay
+            log('walk tree');
+            var right = page.evaluate(walk, self.token, options.walk);    //walk tree
+            var json = JSON.stringify(right);
+            var latest = self.getLatestTree();
+            if(latest.content === json){
+                phantom.exit();
+            } else if(latest === false || !needDiff) {
+                self.save(page, url, json);
+                phantom.exit();
+            } else {
+                var left = JSON.parse(latest.content);
+                var ret = diff(left, right, options.diff);
+                if(ret.length){
+                    var now = Date.now();
+                    var info = self.save(page, url, json, now);
+                    self.highlight(latest.time, now, ret, function(diff){
+                        info.diff = diff;
+                        log(JSON.stringify(info), _.log.INFO);
+                        phantom.exit();
+                    });
+                } else {
+                    log('no change');
+                    phantom.exit();
+                }
+            }
+        }, delay);
+    });
+};
+
+M.prototype.getTree = function(time){
+    var file = this.root + '/' + time + '/' + TREE_FILENAME;
+    if(fs.exists(file)){
+        return JSON.parse(fs.read(file));
+    }
+};
+
+M.prototype.diff = function(left, right){
+    var self = this;
+    var options = self.options;
+    var lTree = this.getTree(left);
+    var rTree = this.getTree(right);
+    if(lTree && rTree){
+        var ret = diff(lTree, rTree, options.diff);
+        if(ret.length){
+            self.highlight(left, right, ret, function(diff){
+                var info = {diff: diff};
+                log(JSON.stringify(info), _.log.INFO);
+                phantom.exit();
+            });
+        } else {
+            log('no change', _.log.WARNING);
+            phantom.exit();
+        }
+    } else if(lTree){
+        throw new Error('missing right record [' + right + ']');
+    } else {
+        throw new Error('missing left record [' + right + ']');
+    }
+};
 
 // run mode, see _.mode@../utils.js
 var mode = parseInt(system.args[1]);
 log('mode: ' + mode.toString(2));
 
-/**
- * get result info
- * @param {string|number|Date} left
- * @param {string|number|Date} right
- * @param {string} screenshot screenshot save path
- * @param {Array} changes
- * @returns {{left: string|number, right: string|number, screenshot: string, count: {add: number, remove: number, style: number, text: number}}}
- */
-function getDiffInfo(left, right, screenshot, changes){
-    // convert into number
-    if(_.is(left, 'Date')){
-        left = left.getTime();
-    }
-    if(_.is(right, 'Date')){
-        right = right.getTime();
-    }
-    var info = {
-        left: left,
-        right: right,
-        screenshot: screenshot,
-        count: {
-            add: 0,
-            remove: 0,
-            style: 0,
-            text: 0
-        }
-    };
-    changes.forEach(function(item){
-        if(item.type & data.diff.changeType.ADD){
-            info.count.add++;
-        }
-        if(item.type & data.diff.changeType.REMOVE){
-            info.count.remove++;
-        }
-        if(item.type & data.diff.changeType.STYLE){
-            info.count.style++;
-        }
-        if(item.type & data.diff.changeType.TEXT){
-            info.count.text++;
-        }
-    });
-    return info;
-}
-
 if(mode & _.mode.CAPTURE){ // capture
-    var url = system.args[2];
-    var needDiff = (mode & _.mode.DIFF) > 0;    // diff also
-    if(needDiff) log('need diff');
-    init(JSON.parse(system.args[3]));
-    log('load: ' + url);
-    createPage(url, data, function(page){   //create page
-        log('loaded: ' + url);
-        page.navigationLocked = true;   // lock navigation
-        var delay = evaluate(page, data.events.beforeWalk) || 0;    // do sth befor walk
-        log('delay: ' + delay);
-        setTimeout(function(){  // delay
-            // walk
-            log('walk tree');
-            var res = page.evaluate(walk, TOKEN, data.walk);    //walk tree
-            var json = JSON.stringify(res);
-
-            // latest
-            var latest, latestDir, latestTree,
-                latestFile = ROOT + '/' + LATEST_LOG_FILENAME;
-            if(fs.exists(latestFile)){
-                latest = fs.read(latestFile).trim();
-                latestDir = ROOT + '/' + latest;
-                latestTree = fs.read(latestDir + '/' + TREE_FILENAME);
-            }
-
-            if(latestTree && latestTree === json){ // nochange
-                phantom.exit();
-            } else {    // has change, save data
-                var now = Date.now();
-                var dir = ROOT + '/' + now;
-                if(fs.makeDirectory(dir)){
-                    // save current
-                    page.render(dir + '/' + SCREENSHOT_FILENAME);
-                    fs.write(dir + '/' + TREE_FILENAME, json);
-                    fs.write(dir + '/' + INFO_FILENAME, JSON.stringify({
-                        time: now,
-                        url: url
-                    }));
-                    fs.write(ROOT + '/' + LATEST_LOG_FILENAME, now);
-                    page.close();
-                    var info = {
-                        time: now,
-                        dir: dir,
-                        screenshot: dir + '/' + SCREENSHOT_FILENAME
-                    };
-                    if(needDiff && latestTree){ // diff
-                        highlight(latest, now, function(ret, pic){
-                            if(ret.length === 0) {
-                                log('no change', _.log.WARNING);
-                            } else {
-                                info.diff = getDiffInfo(latest, now, pic, ret);
-                                log(JSON.stringify(info), _.log.INFO);
-                            }
-                            phantom.exit();
-                        });
-                    } else {
-                        log(JSON.stringify(info), _.log.INFO);
-                        phantom.exit();
-                    }
-                } else {
-                    throw  new Error('ERROR: unable to make directory[' + dir + ']');
-                }
-            }
-        }, delay);
-        return false;
-    });
+    (new M(JSON.parse(system.args[3]))).capture(system.args[2], (mode & _.mode.DIFF) > 0);
 } else if(mode & _.mode.DIFF){ // diff only
-    var left = system.args[2];
-    var right = system.args[3];
-    init(JSON.parse(system.args[4]));
-    highlight(left, right, function(ret, pic){
-        if(ret.length === 0) {
-            log('no change', _.log.WARNING);
-        } else {
-            var info = { diff: getDiffInfo(left, right, pic, ret) };
-            log(JSON.stringify(info), _.log.INFO);
-        }
-        phantom.exit();
-    });
+    (new M(JSON.parse(system.args[4]))).diff(system.args[2], system.args[3]);
 }

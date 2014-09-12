@@ -77,23 +77,42 @@ module.exports = function(token, diff, opt){
         }
     }
 
+    var count = {
+        add: 0,
+        remove: 0,
+        style: 0,
+        text: 0
+    };
+
     // highlight diffs
     diff.forEach(function(item){
         var node = item.node;
-        switch (item.type){
+        var type = item.type;
+        switch (type){
             case CHANGE_TYPE.ADD:
+                count.add++;
                 highlightElement(node.rect, CHANGE_STYLE.ADD, rContainer);
                 break;
             case CHANGE_TYPE.REMOVE:
+                count.remove++;
                 highlightElement(node.rect, CHANGE_STYLE.REMOVE, lContainer);
                 break;
             case CHANGE_TYPE.TEXT:
+                count.text++;
                 highlightElement(node.rect, CHANGE_STYLE.TEXT, rContainer);
                 break;
             default :
+                if(type & CHANGE_TYPE.STYLE){
+                    count.style++;
+                }
+                if(type & CHANGE_TYPE.TEXT){
+                    count.text++;
+                }
                 highlightElement(node.rect, CHANGE_STYLE.STYLE, rContainer);
                 break;
         }
     });
+
+    return count;
 
 };
