@@ -181,6 +181,11 @@ function createPage(url, options, onload){
     return page;
 }
 
+/**
+ * Constructor
+ * @param {Object} options
+ * @constructor
+ */
 var M = function(options){
     this.token = TOKEN;
     this.options = options;
@@ -194,6 +199,10 @@ var M = function(options){
     this.latest = this.root + '/' + LATEST_LOG_FILENAME;
 };
 
+/**
+ * get info of the latest save
+ * @returns {Object|boolean}
+ */
 M.prototype.getLatestTree = function(){
     if(fs.exists(this.latest)){
         var time = fs.read(this.latest).trim();
@@ -212,13 +221,24 @@ M.prototype.getLatestTree = function(){
     return false;
 };
 
+/**
+ * save capture
+ * @param {webpage} page
+ * @param {string} url
+ * @param {string|Object} tree
+ * @param {string|number} time
+ * @returns {{time: number, dir: string, screenshot: string}}
+ */
 M.prototype.save = function(page, url, tree, time){
     time = time || Date.now();
+    if(_.is(tree, 'Object')){
+        tree = JSON.stringify(tree);
+    }
     var dir = this.root + '/' + time;
     if(fs.makeDirectory(dir)){
         var screenshot = dir + '/' + SCREENSHOT_FILENAME;
         page.render(screenshot);
-        fs.write(dir + '/' + TREE_FILENAME, json);
+        fs.write(dir + '/' + TREE_FILENAME, tree);
         fs.write(dir + '/' + INFO_FILENAME, JSON.stringify({
             time: time,
             url: url
@@ -235,6 +255,13 @@ M.prototype.save = function(page, url, tree, time){
     }
 };
 
+/**
+ * highlight the changes
+ * @param {string|number} left
+ * @param {string|number} right
+ * @param {Array} diff
+ * @param {Function} callback
+ */
 M.prototype.highlight = function(left, right, diff, callback){
     log('diff [' + left + '] width [' + right + '] has ' + diff.length + ' changes');
     var lScreenshot = this.root + '/' + left + '/' + SCREENSHOT_FILENAME;
@@ -273,6 +300,11 @@ M.prototype.highlight = function(left, right, diff, callback){
     });
 };
 
+/**
+ * page capture
+ * @param {string} url
+ * @param {boolean} needDiff
+ */
 M.prototype.capture = function(url, needDiff){
     if(needDiff) log('need diff');
     var self = this,
@@ -313,6 +345,11 @@ M.prototype.capture = function(url, needDiff){
     });
 };
 
+/**
+ * get tree object by time
+ * @param {string|number} time
+ * @returns {Object|undefined}
+ */
 M.prototype.getTree = function(time){
     var file = this.root + '/' + time + '/' + TREE_FILENAME;
     if(fs.exists(file)){
@@ -320,6 +357,11 @@ M.prototype.getTree = function(time){
     }
 };
 
+/**
+ * page diff
+ * @param {string|number} left
+ * @param {string|number} right
+ */
 M.prototype.diff = function(left, right){
     var self = this;
     var options = self.options;
@@ -349,7 +391,9 @@ var mode = parseInt(system.args[1]);
 log('mode: ' + mode.toString(2));
 
 if(mode & _.mode.CAPTURE){ // capture
-    (new M(JSON.parse(system.args[3]))).capture(system.args[2], (mode & _.mode.DIFF) > 0);
+    var m = new M(JSON.parse(system.args[3]));
+    m.capture(system.args[2], (mode & _.mode.DIFF) > 0);
 } else if(mode & _.mode.DIFF){ // diff only
-    (new M(JSON.parse(system.args[4]))).diff(system.args[2], system.args[3]);
+    m = new M(JSON.parse(system.args[4]));
+    m.diff(system.args[2], system.args[3]);
 }
