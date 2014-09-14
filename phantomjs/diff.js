@@ -42,14 +42,44 @@ function isMatch(left, right){
 }
 
 /**
+ * common logic of `LCSHeadFirst’ and `LCSTailFirst‘
+ * @param {Object} old
+ * @param {Object} cur
+ * @param {Function} match
+ * @param {Number} x
+ * @param {Array} lastLine
+ * @param {Array} currLine
+ */
+function LCSProc(old, cur, match, x, lastLine, currLine){
+    if(match(old, cur)){
+        var sequence = (lastLine[x-1] || []).slice(0);
+        sequence.push({ l: old, r: cur });
+        currLine[x] = sequence;
+    } else {
+        var lSeq = currLine[x-1];
+        var tSeq = lastLine[x];
+        if(lSeq && tSeq){
+            if(lSeq.length < tSeq.length){
+                currLine[x] = tSeq.slice(0);
+            } else {
+                currLine[x] = lSeq.slice(0);
+            }
+        } else if(lSeq) {
+            currLine[x] = lSeq.slice(0);
+        } else if(tSeq) {
+            currLine[x] = tSeq.slice(0);
+        }
+    }
+}
+
+/**
  * Longest common subsequence (obverse)
  * @param {Array} left
  * @param {Array} right
  * @param {Function} match
  * @returns {Array}
- * @constructor
  */
-function LCS(left, right, match){
+function LCSHeadFirst(left, right, match){
     var lastLine = [];
     var currLine = [];
     var y = left.length;
@@ -60,30 +90,12 @@ function LCS(left, right, match){
         while(i--){
             var cur = right[i];
             var x = len -  i - 1;
-            if(match(old, cur)){
-                var sequence = (lastLine[x-1] || []).slice(0);
-                sequence.push({ l: old, r: cur });
-                currLine[x] = sequence;
-            } else {
-                var lSeq = currLine[x-1];
-                var tSeq = lastLine[x];
-                if(lSeq && tSeq){
-                    if(lSeq.length < tSeq.length){
-                        currLine[x] = tSeq.slice(0);
-                    } else {
-                        currLine[x] = lSeq.slice(0);
-                    }
-                } else if(lSeq) {
-                    currLine[x] = lSeq.slice(0);
-                } else if(tSeq) {
-                    currLine[x] = tSeq.slice(0);
-                }
-            }
+            LCSProc(old, cur, match, x, lastLine, currLine);
         }
         lastLine = currLine;
         currLine = [];
     }
-    return lastLine.pop() || [];
+    return (lastLine.pop() || []);
 }
 
 /**
@@ -92,32 +104,13 @@ function LCS(left, right, match){
  * @param {Array} right
  * @param {Function} match
  * @returns {Array}
- * @constructor
  */
-function LCS2(left, right, match){
+function LCSTailFirst(left, right, match){
     var lastLine = [];
     var currLine = [];
     left.forEach(function(old){
         right.forEach(function(cur, x){
-            if(match(old, cur)){
-                var sequence = (lastLine[x-1] || []).slice(0);
-                sequence.push({ l: old, r: cur });
-                currLine[x] = sequence;
-            } else {
-                var lSeq = currLine[x-1];
-                var tSeq = lastLine[x];
-                if(lSeq && tSeq){
-                    if(lSeq.length > tSeq.length){
-                        currLine[x] = lSeq.slice(0);
-                    } else {
-                        currLine[x] = tSeq.slice(0);
-                    }
-                } else if(lSeq) {
-                    currLine[x] = lSeq.slice(0);
-                } else if(tSeq) {
-                    currLine[x] = tSeq.slice(0);
-                }
-            }
+            LCSProc(old, cur, match, x, lastLine, currLine);
         });
         lastLine = currLine;
         currLine = [];
@@ -141,7 +134,8 @@ var diff = function(left, right, opt){
     if(left.style !== right.style){
         change.type |= opt.changeType.STYLE;
     }
-    (opt.priority === 'tail' ? LCS2 : LCS)(left.child, right.child, isMatch).forEach(function(node){
+    var LCS = opt.priority === 'head' ? LCSHeadFirst : LCSTailFirst;
+    LCS(left.child, right.child, isMatch).forEach(function(node){
         var old = node.l;
         var cur = node.r;
         cur.matched = old.matched = true;
