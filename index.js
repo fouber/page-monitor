@@ -361,8 +361,8 @@ Monitor.prototype.capture = function(callback, noDiff){
 
 /**
  * diff with two times
- * @param {Number|String} left
- * @param {Number|String} right
+ * @param {Number|String|Date} left
+ * @param {Number|String|Date} right
  * @param {Function} callback
  * @returns {*}
  */
@@ -372,6 +372,12 @@ Monitor.prototype.diff = function(left, right, callback){
     var self = this;
     var type = _.mode.DIFF;
     this._initLog();
+    if(_.is(left, 'Date')){
+        left = left.getDate();
+    }
+    if(_.is(right, 'Date')){
+        right = right.getDate();
+    }
     return this._phantom(
         [
             PHANTOMJS_SCRIPT_FILE,
@@ -398,8 +404,9 @@ Monitor.prototype._phantom = function(args, callback){
     _.map(this.options.cli, function(key, value){
         arr.push(key + '=' + value);
     });
+    this.emit('debug', 'cli arguments: ' + JSON.stringify(arr, null, 2));
     arr = arr.concat(args);
-    var proc = spawn('phantomjs', args);
+    var proc = spawn('phantomjs', arr);
     proc.stdout.on('data', this._parseLog.bind(this));
     proc.stderr.on('data', this._parseLog.bind(this));
     proc.on('exit', function(code){

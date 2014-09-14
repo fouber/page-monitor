@@ -68,6 +68,7 @@ module.exports = function(token, diff, opt){
     for(var key in CHANGE_STYLE){
         if(CHANGE_STYLE.hasOwnProperty(key)){
             var div = highlightElement([0, 0, 100, 18], CHANGE_STYLE[key], lenged, true);
+            div.setAttribute('id', 's-' + key);
             div.style.position = 'static';
             div.style.margin = '5px 8px';
             div.style.display = 'inline-block';
@@ -112,6 +113,13 @@ module.exports = function(token, diff, opt){
                 break;
         }
     });
+
+    for(var key in CHANGE_STYLE){
+        if(CHANGE_STYLE.hasOwnProperty(key)){
+            var div = document.getElementById('s-' + key);
+            div.innerHTML += ' x ' + count[key.toLowerCase()];
+        }
+    }
 
     return count;
 

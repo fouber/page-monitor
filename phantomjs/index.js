@@ -236,6 +236,7 @@ M.prototype.save = function(page, url, tree, time){
     }
     var dir = this.root + '/' + time;
     if(fs.makeDirectory(dir)){
+        log('save capture [' + dir + ']');
         var screenshot = dir + '/' + SCREENSHOT_FILENAME;
         page.render(screenshot);
         fs.write(dir + '/' + TREE_FILENAME, tree);
@@ -263,7 +264,8 @@ M.prototype.save = function(page, url, tree, time){
  * @param {Function} callback
  */
 M.prototype.highlight = function(left, right, diff, callback){
-    log('diff [' + left + '] width [' + right + '] has ' + diff.length + ' changes');
+    log('diff [' + left + '] width [' + right + ']');
+    log('has [' + diff.length + '] changes');
     var lScreenshot = this.root + '/' + left + '/' + SCREENSHOT_FILENAME;
     var rScreenshot = this.root + '/' + right + '/' + SCREENSHOT_FILENAME;
     var dScreenshot = this.root + '/diff/' + left + '-' + right + '.png';
@@ -321,12 +323,14 @@ M.prototype.capture = function(url, needDiff){
             var json = JSON.stringify(right);
             var latest = self.getLatestTree();
             if(latest.content === json){
+                log('no change');
                 phantom.exit();
             } else if(latest === false || !needDiff) {
                 self.save(page, url, json);
                 phantom.exit();
             } else {
                 var left = JSON.parse(latest.content);
+                right = JSON.parse(json);
                 var ret = diff(left, right, options.diff);
                 if(ret.length){
                     var now = Date.now();

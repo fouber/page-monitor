@@ -52,8 +52,14 @@ function isMatch(left, right){
 function LCS(left, right, match){
     var lastLine = [];
     var currLine = [];
-    left.forEach(function(old){
-        right.forEach(function(cur, x){
+    var y = left.length;
+    var len = right.length;
+    while(y--){
+        var old = left[y];
+        var i = len;
+        while(i--){
+            var cur = right[i];
+            var x = len -  i - 1;
             if(match(old, cur)){
                 var sequence = (lastLine[x-1] || []).slice(0);
                 sequence.push({ l: old, r: cur });
@@ -62,10 +68,10 @@ function LCS(left, right, match){
                 var lSeq = currLine[x-1];
                 var tSeq = lastLine[x];
                 if(lSeq && tSeq){
-                    if(lSeq.length > tSeq.length){
-                        currLine[x] = lSeq.slice(0);
-                    } else {
+                    if(lSeq.length < tSeq.length){
                         currLine[x] = tSeq.slice(0);
+                    } else {
+                        currLine[x] = lSeq.slice(0);
                     }
                 } else if(lSeq) {
                     currLine[x] = lSeq.slice(0);
@@ -73,11 +79,11 @@ function LCS(left, right, match){
                     currLine[x] = tSeq.slice(0);
                 }
             }
-        });
+        }
         lastLine = currLine;
         currLine = [];
-    });
-    return (lastLine.pop() || []);
+    }
+    return lastLine.pop() || [];
 }
 
 /**
