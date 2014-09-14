@@ -42,7 +42,7 @@ function isMatch(left, right){
 }
 
 /**
- * Longest common subsequence
+ * Longest common subsequence (obverse)
  * @param {Array} left
  * @param {Array} right
  * @param {Function} match
@@ -87,6 +87,45 @@ function LCS(left, right, match){
 }
 
 /**
+ * Longest common subsequence (reverse)
+ * @param {Array} left
+ * @param {Array} right
+ * @param {Function} match
+ * @returns {Array}
+ * @constructor
+ */
+function LCS2(left, right, match){
+    var lastLine = [];
+    var currLine = [];
+    left.forEach(function(old){
+        right.forEach(function(cur, x){
+            if(match(old, cur)){
+                var sequence = (lastLine[x-1] || []).slice(0);
+                sequence.push({ l: old, r: cur });
+                currLine[x] = sequence;
+            } else {
+                var lSeq = currLine[x-1];
+                var tSeq = lastLine[x];
+                if(lSeq && tSeq){
+                    if(lSeq.length > tSeq.length){
+                        currLine[x] = lSeq.slice(0);
+                    } else {
+                        currLine[x] = tSeq.slice(0);
+                    }
+                } else if(lSeq) {
+                    currLine[x] = lSeq.slice(0);
+                } else if(tSeq) {
+                    currLine[x] = tSeq.slice(0);
+                }
+            }
+        });
+        lastLine = currLine;
+        currLine = [];
+    });
+    return (lastLine.pop() || []);
+}
+
+/**
  * diff change
  * @param {Object} left
  * @param {Object} right
@@ -102,7 +141,7 @@ var diff = function(left, right, opt){
     if(left.style !== right.style){
         change.type |= opt.changeType.STYLE;
     }
-    LCS(left.child, right.child, isMatch).forEach(function(node){
+    (opt.priority === 'tail' ? LCS2 : LCS)(left.child, right.child, isMatch).forEach(function(node){
         var old = node.l;
         var cur = node.r;
         cur.matched = old.matched = true;

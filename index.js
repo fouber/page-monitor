@@ -118,6 +118,8 @@ function mergeSettings(settings){
             root: 'body'
         },
         diff: {
+            // LCS diff priority, `head` or `tail`
+            priority: 'head',
             // highlight mask styles
             highlight: {
                 add: {
