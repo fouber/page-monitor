@@ -121,14 +121,14 @@ function mergeSettings(settings){
             // highlight mask styles
             highlight: {
                 add: {
-                    title: '新增(Add)',
+                    title: '新增(Added)',
                     backgroundColor: 'rgba(127, 255, 127, 0.3)',
                     borderColor: '#090',
                     color: '#060',
                     textShadow: '0 1px 1px rgba(0, 0, 0, 0.3)'
                 },
                 remove: {
-                    title: '删除(Remove)',
+                    title: '删除(Removed)',
                     backgroundColor: 'rgba(0, 0, 0, 0.5)',
                     borderColor: '#999',
                     color: '#fff'

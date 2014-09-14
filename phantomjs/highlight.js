@@ -65,9 +65,9 @@ module.exports = function(token, diff, opt){
 
     // add lenged
     var lenged = document.getElementById('legend');
-    for(var key in CHANGE_STYLE){
+    for(key in CHANGE_STYLE){
         if(CHANGE_STYLE.hasOwnProperty(key)){
-            var div = highlightElement([0, 0, 100, 18], CHANGE_STYLE[key], lenged, true);
+            div = highlightElement([0, 0, 120, 18], CHANGE_STYLE[key], lenged, true);
             div.setAttribute('id', 's-' + key);
             div.style.position = 'static';
             div.style.margin = '5px 8px';
@@ -117,7 +117,16 @@ module.exports = function(token, diff, opt){
     for(var key in CHANGE_STYLE){
         if(CHANGE_STYLE.hasOwnProperty(key)){
             var div = document.getElementById('s-' + key);
-            div.innerHTML += ' x ' + count[key.toLowerCase()];
+            var span = document.createElement('x-span');
+            span.innerHTML = count[key.toLowerCase()] || 0;
+            span.style.float = 'right';
+            span.style.backgroundColor = 'rgba(0,0,0,0.8)';
+            span.style.paddingLeft = '5px';
+            span.style.paddingRight = '5px';
+            span.style.height = '18px';
+            span.style.lineHeight = '18px';
+            span.style.color = '#fff';
+            div.appendChild(span);
         }
     }
 
