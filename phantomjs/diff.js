@@ -165,11 +165,16 @@ var diff = function(left, right, opt){
     });
     left.child.forEach(function(node){
         if(!node.matched){
-            // removed element
-            ret.push({
-                type: opt.changeType.REMOVE,
-                node: node
-            });
+            if(node.name === '#'){
+                // remove text, but count as text change
+                change.type |= opt.changeType.TEXT;
+            } else {
+                // removed element
+                ret.push({
+                    type: opt.changeType.REMOVE,
+                    node: node
+                });
+            }
         }
     });
     if(change.type){
