@@ -57,8 +57,14 @@ caputure webpage and save screenshot, then diff with last save.
 
 ```javascript
 var monitor = new Monitor(url, options);
+monitor.on('debug', function(msg){
+    console.log('debug:', msg);
+});
 monitor.capture(function(code){
-    console.log(monitor.log); // from phantom
+    console.log('done, exit [' + code + ']');
+});
+monitor.capture(function(code){
+    console.log(monitor.log.info); // diff result
     console.log('done, exit [' + code + ']');
 });
 ```
@@ -69,8 +75,14 @@ diff change between left(date.getTime()) and right(date.getTime()).
 
 ```javascript
 var monitor = new Monitor(url, options);
+monitor.on('debug', function(msg){
+    console.log('debug:', msg);
+});
+monitor.capture(function(code){
+    console.log('done, exit [' + code + ']');
+});
 monitor.diff(1408947323420, 1408947556898, function(code){
-    console.log(monitor.log); // from phantom
+    console.log(monitor.log.info); // diff result
     console.log('done, exit [' + code + ']');
 });
 ```
