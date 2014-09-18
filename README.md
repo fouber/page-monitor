@@ -57,15 +57,15 @@ caputure webpage and save screenshot, then diff with last save.
 
 ```javascript
 var monitor = new Monitor(url, options);
-monitor.on('debug', function(msg){
-    console.log('debug:', msg);
+monitor.on('debug', function (data) {
+    console.log('[DEBUG] ' + data);
 });
-monitor.capture(function(code){
-    console.log('done, exit [' + code + ']');
+monitor.on('error', function (data) {
+    console.error('[ERROR] ' + data);
 });
 monitor.capture(function(code){
     console.log(monitor.log.info); // diff result
-    console.log('done, exit [' + code + ']');
+    console.log('[DONE] exit [' + code + ']');
 });
 ```
 
@@ -75,15 +75,15 @@ diff change between left(date.getTime()) and right(date.getTime()).
 
 ```javascript
 var monitor = new Monitor(url, options);
-monitor.on('debug', function(msg){
-    console.log('debug:', msg);
+monitor.on('debug', function (data) {
+    console.log('[DEBUG] ' + data);
 });
-monitor.capture(function(code){
-    console.log('done, exit [' + code + ']');
+monitor.on('error', function (data) {
+    console.error('[ERROR] ' + data);
 });
 monitor.diff(1408947323420, 1408947556898, function(code){
     console.log(monitor.log.info); // diff result
-    console.log('done, exit [' + code + ']');
+    console.log('[DONE] exit [' + code + ']');
 });
 ```
 
@@ -91,11 +91,11 @@ monitor.diff(1408947323420, 1408947556898, function(code){
 
 ```javascript
 var monitor = new Monitor(url);
-monitor.on('debug', function(msg){
-    console.log('debug:', msg);
+monitor.on('debug', function (data) {
+    console.log('[DEBUG] ' + data);
 });
-monitor.capture(function(code){
-    console.log('done, exit [' + code + ']');
+monitor.on('error', function (data) {
+    console.error('[ERROR] ' + data);
 });
 ```
 
