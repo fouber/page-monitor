@@ -28,6 +28,8 @@
 
 ## Usage
 
+> First of all, install [phantomjs](http://phantomjs.org/download.html), page-monitor relys on [phantomjs](http://phantomjs.org/) to render webpage and genenrate screenshot.
+
 ```javascript
 var Monitor = require('page-monitor');
 
