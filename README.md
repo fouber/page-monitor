@@ -28,7 +28,7 @@
 
 ## Usage
 
-> First of all, install [phantomjs](http://phantomjs.org/download.html), page-monitor relys on [phantomjs](http://phantomjs.org/) to render webpage and genenrate screenshot.
+> First of all, install [phantomjs](http://phantomjs.org/download.html), page-monitor relys on [phantomjs](http://phantomjs.org/) to render webpage and genenrate screenshot. DO NOT use ``npm`` to install phantomjs on winidows, it can't be launched by ``spawn``.
 
 ```javascript
 var Monitor = require('page-monitor');
