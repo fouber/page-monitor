@@ -164,7 +164,10 @@ function mergeSettings(settings){
             }
         },
         render: {
-            delay: 1000 // delay(ms) before screenshot.
+            format: 'jpeg',   // @see http://phantomjs.org/api/webpage/method/render.html
+            quality: 80,      // @see http://phantomjs.org/api/webpage/method/render.html
+            ext: 'jpg',       // the same as format, if not specified
+            delay: 1000       // delay(ms) before screenshot.
         },
         path: {
             root: DEFAULT_DATA_DIRNAME, // data and screenshot save path root

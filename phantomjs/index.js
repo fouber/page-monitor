@@ -38,7 +38,7 @@ var TOKEN = _.unique();
 
 // constant values
 var LATEST_LOG_FILENAME = 'latest.log';
-var SCREENSHOT_FILENAME = 'screenshot.png';
+var SCREENSHOT_FILENAME = 'screenshot';
 var INFO_FILENAME = 'info.json';
 var TREE_FILENAME = 'tree.json';
 var HIGHLIGHT_HTML_FILENAME = 'highlight.html';
@@ -221,6 +221,31 @@ M.prototype.getLatestTree = function(){
     return false;
 };
 
+var FORMAT_MAP = {
+    png  : 'png',
+    gif  : 'gif',
+    jpeg : 'jpeg',
+    jpg  : 'jpeg',
+    pdf  : 'pdf'
+};
+
+/**
+ * get render options
+ * @returns {{ext: string, format: 'png'|'gif'|'jpeg'|'pdf', quality: number}}
+ */
+M.prototype.getRenderOptions = function(){
+    var render = this.options.render || {};
+    var f = String(render.format).toLowerCase();
+    var format = FORMAT_MAP[f] || 'png';
+    var quality = render.quality || 80;
+    var ext = (render.ext || f).toLowerCase();
+    return {
+        ext: ext,
+        format: format,
+        quality: quality
+    };
+};
+
 /**
  * save capture
  * @param {webpage} page
@@ -237,8 +262,14 @@ M.prototype.save = function(page, url, tree, time){
     var dir = this.root + '/' + time;
     if(fs.makeDirectory(dir)){
         log('save capture [' + dir + ']');
-        var screenshot = dir + '/' + SCREENSHOT_FILENAME;
-        page.render(screenshot);
+        var opt = this.getRenderOptions();
+        var screenshot = dir + '/' + SCREENSHOT_FILENAME + '.' + opt.ext;
+        log('screenshot [' + screenshot + ']');
+        page.evaluate(function(){
+            var elem = document.documentElement;
+            elem.style.backgroundColor = '#fff';
+        });
+        page.render(screenshot, opt);
         fs.write(dir + '/' + TREE_FILENAME, tree);
         fs.write(dir + '/' + INFO_FILENAME, JSON.stringify({
             time: time,
@@ -266,9 +297,10 @@ M.prototype.save = function(page, url, tree, time){
 M.prototype.highlight = function(left, right, diff, callback){
     log('diff [' + left + '] width [' + right + ']');
     log('has [' + diff.length + '] changes');
-    var lScreenshot = this.root + '/' + left + '/' + SCREENSHOT_FILENAME;
-    var rScreenshot = this.root + '/' + right + '/' + SCREENSHOT_FILENAME;
-    var dScreenshot = this.root + '/diff/' + left + '-' + right + '.png';
+    var render = this.getRenderOptions();
+    var lScreenshot = this.root + '/' + left + '/' + SCREENSHOT_FILENAME + '.' + render.ext;
+    var rScreenshot = this.root + '/' + right + '/' + SCREENSHOT_FILENAME + '.' + render.ext;
+    var dScreenshot = this.root + '/diff/' + left + '-' + right + '.' + render.ext;
     var html = phantom.libraryPath + '/' + HIGHLIGHT_HTML_FILENAME;
     var url = 'file://' + (IS_WIN ? '/' : '') + html + '?';
     var opt = {
@@ -296,7 +328,7 @@ M.prototype.highlight = function(left, right, diff, callback){
             count: page.evaluate(highlight, self.token, diff, options.diff)
         };
         setTimeout(function(){
-            page.render(dScreenshot);
+            page.render(dScreenshot, render);
             callback(info);
         }, 200);
     });
