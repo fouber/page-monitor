@@ -111,15 +111,17 @@ function createPage(url, options, onload){
         }
     }
 
-    var timer, count = 0,
+    var timer, count = 0, outTimer,
         delay = options.render.delay;
+    var done = function(){
+        callback = function(){};
+        onload(page);
+    };
     var callback = function(){
         clearTimeout(timer);
         if(count === 0){
-            timer = setTimeout(function(){
-                onload(page);
-                callback = function(){};
-            }, delay);
+            clearTimeout(outTimer);
+            timer = setTimeout(done, delay);
         }
     };
     settings(page, options.page);
@@ -180,11 +182,10 @@ function createPage(url, options, onload){
     page.open(url);
     var timeout = options.render.timeout;
     if(timeout){
-        setTimeout(function(){
+        outTimer = setTimeout(function(){
             clearTimeout(timer);
-            callback = function(){};
             log('render timeout [' + timeout + ']ms', _.log.ERROR);
-            onload(page);
+            done();
         }, timeout);
     }
     return page;
