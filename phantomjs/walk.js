@@ -217,6 +217,16 @@ module.exports = function(TOKEN, data){
         }
     }
 
+    if(data.removeSelectors && data.removeSelectors.length){
+        data.removeSelectors.forEach(function(selector){
+            var elems = document.querySelectorAll(selector);
+            for(var i = 0, len = elems.length; i < len; i++){
+                var elem = elems[i];
+                elem.parentNode.removeChild(elem);
+                elem = null;
+            }
+        });
+    }
     return walk(document.querySelector(ROOT));
 
 };

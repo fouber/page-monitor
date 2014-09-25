@@ -113,6 +113,7 @@ function mergeSettings(settings){
             attributeFilters: [ 'id', 'class' ],
             includeSelectors: [],
             excludeSelectors: [],
+            removeSelectors: [],    // remove elements before walk
             ignoreTextSelectors: [],
             ignoreChildrenSelectors: [],
             root: 'body'
