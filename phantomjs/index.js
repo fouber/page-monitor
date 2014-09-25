@@ -114,13 +114,14 @@ function createPage(url, options, onload){
     var timer, count = 0, outTimer,
         delay = options.render.delay;
     var done = function(){
+        clearTimeout(timer);
+        clearTimeout(outTimer);
         callback = function(){};
         onload(page);
     };
     var callback = function(){
         clearTimeout(timer);
         if(count === 0){
-            clearTimeout(outTimer);
             timer = setTimeout(done, delay);
         }
     };
@@ -183,7 +184,6 @@ function createPage(url, options, onload){
     var timeout = options.render.timeout;
     if(timeout){
         outTimer = setTimeout(function(){
-            clearTimeout(timer);
             log('render timeout [' + timeout + ']ms', _.log.ERROR);
             done();
         }, timeout);
