@@ -178,13 +178,14 @@ function createPage(url, options, onload){
         }
     };
     page.open(url);
-    if(options.render.timeout){
+    var timeout = options.render.timeout;
+    if(timeout){
         setTimeout(function(){
             clearTimeout(timer);
             callback = function(){};
-            log('render timeout', _.log.ERROR);
+            log('render timeout [' + timeout + ']', _.log.ERROR);
             onload(page);
-        }, options.render.timeout);
+        }, timeout);
     }
     return page;
 }
