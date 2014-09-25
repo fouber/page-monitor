@@ -410,7 +410,7 @@ Monitor.prototype._phantom = function(args, callback){
     _.map(this.options.cli, function(key, value){
         arr.push(key + '=' + value);
     });
-    this.emit('debug', 'cli arguments: ' + JSON.stringify(arr, null, 2));
+    this.emit('debug', 'cli arguments: ' + JSON.stringify(arr));
     arr = arr.concat(args);
     var proc = spawn('phantomjs', arr);
     proc.stdout.on('data', this._parseLog.bind(this));
