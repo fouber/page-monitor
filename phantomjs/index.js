@@ -182,6 +182,7 @@ function createPage(url, options, onload){
         setTimeout(function(){
             clearTimeout(timer);
             callback = function(){};
+            log('render timeout', _.log.ERROR);
             onload(page);
         }, options.render.timeout);
     }
