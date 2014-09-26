@@ -179,7 +179,7 @@ function mergeSettings(settings){
             format: function(url, opt){
                 return [
                     opt.hostname, (opt.port ? '-' + opt.port : ''), '/',
-                    base64(opt.path + (opt.hash || ''))
+                    base64(opt.path + (opt.hash || '')).replace(/\//g, '.')
                 ].join('');
             }
         }
