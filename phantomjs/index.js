@@ -144,12 +144,13 @@ function createPage(url, options, onload){
     page.onResourceRequested = function(req){
         count++;
         // console.log('+ [' + count + ']' + req.url);
+        // log('+ [' + count + ']' + req.url, _.log.DEBUG);
         callback();
     };
     page.onResourceReceived = function(res){
         if(res.stage === 'end'){
             count--;
-            // console.log('- [' + count + ']' + res.url);
+            // log('- [' + count + ']' + res.url, _.log.DEBUG);
             callback();
         }
     };
@@ -159,7 +160,6 @@ function createPage(url, options, onload){
         callback();
     };
     page.onResourceError = function(req){
-        count--;
         log('resource [' + req.url + '] error', _.log.WARNING);
         callback();
     };
