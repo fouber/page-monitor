@@ -158,6 +158,11 @@ function createPage(url, options, onload){
         log('resource [' + req.url + '] timeout', _.log.WARNING);
         callback();
     };
+    page.onResourceError = function(req){
+        count--;
+        log('resource [' + req.url + '] error', _.log.WARNING);
+        callback();
+    };
     page.onError = function(msg, trace){
         var msgStack = [ msg ];
         if (trace && trace.length) {
