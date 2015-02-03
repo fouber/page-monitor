@@ -133,14 +133,14 @@ function createPage(url, options, onload){
             callback();
         }
     };
-    page.onloadFinished = function(status){
-        if(status === 'success'){
-            callback();
-        } else {
-            log('load page error [' + status + ']', _.log.ERROR);
-            phantom.exit(1);
-        }
-    };
+    //page.onloadFinished = function(status){
+    //    if(status === 'success'){
+    //        callback();
+    //    } else {
+    //        log('load page error [' + status + ']', _.log.ERROR);
+    //        phantom.exit(1);
+    //    }
+    //};
     page.onResourceRequested = function(req){
         count++;
         // console.log('+ [' + count + ']' + req.url);
@@ -185,7 +185,14 @@ function createPage(url, options, onload){
             log(msg, _.log.NOTICE);
         }
     };
-    page.open(url);
+    page.open(url, function(status){
+        if(status === 'success'){
+            callback();
+        } else {
+            log('load page error [' + status + ']', _.log.ERROR);
+            phantom.exit(1);
+        }
+    });
     var timeout = options.render.timeout;
     if(timeout){
         outTimer = setTimeout(function(){
