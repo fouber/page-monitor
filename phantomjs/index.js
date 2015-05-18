@@ -328,7 +328,8 @@ M.prototype.highlight = function(left, right, diff, callback){
     var opt = {
         page : {
             settings: {
-                localToRemoteUrlAccessEnabled: true
+                localToRemoteUrlAccessEnabled: true,
+                webSecurityEnabled: false
             }
         },
         render: {

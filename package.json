@@ -1,6 +1,6 @@
 {
     "name": "page-monitor",
-    "version": "0.4.7",
+    "version": "0.4.8",
     "description": "monitor pages and diff the dom change with phantomjs",
     "main": "index.js",
     "scripts": {
@@ -12,6 +12,9 @@
         "phantom",
         "diff"
     ],
+    "dependencies": {
+        "phantomjs": "~1.9.16"
+    },
     "repository": {
         "type": "git",
         "url": "https://github.com/fouber/page-monitor.git"

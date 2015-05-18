@@ -9,6 +9,8 @@ var PHANTOMJS_SCRIPT_DIR = path.join(__dirname, 'phantomjs');
 var PHANTOMJS_SCRIPT_FILE = path.join(PHANTOMJS_SCRIPT_DIR, 'index.js');
 var _ = require('./util.js');
 var _exists = fs.existsSync || path.existsSync;
+var phantomjs = require('phantomjs');
+var binPath = phantomjs.path;
 
 /**
  * mkdir -p
@@ -413,7 +415,7 @@ Monitor.prototype._phantom = function(args, callback){
     });
     this.emit('debug', 'cli arguments: ' + JSON.stringify(arr));
     arr = arr.concat(args);
-    var proc = spawn('phantomjs', arr);
+    var proc = spawn(binPath, arr);
     proc.stdout.on('data', this._parseLog.bind(this));
     proc.stderr.on('data', this._parseLog.bind(this));
     proc.on('exit', function(code){
