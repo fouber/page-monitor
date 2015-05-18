@@ -127,7 +127,7 @@ function createPage(url, options, onload){
     };
     settings(page, options.page);
     page.onLoadStarted = function(){
-        if(page.url !== 'about:blank'){
+        if(page.url && page.url !== 'about:blank'){
             count++;
             //console.log('* [' + count + ']' + page.url);
             callback();
@@ -144,13 +144,13 @@ function createPage(url, options, onload){
     page.onResourceRequested = function(req){
         count++;
         // console.log('+ [' + count + ']' + req.url);
-        // log('+ [' + count + ']' + req.url, _.log.DEBUG);
+        // log('+ [' + count + ']' + req.url);
         callback();
     };
     page.onResourceReceived = function(res){
         if(res.stage === 'end'){
             count--;
-            // log('- [' + count + ']' + res.url, _.log.DEBUG);
+            // log('- [' + count + ']' + res.url);
             callback();
         }
     };

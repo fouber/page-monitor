@@ -186,7 +186,15 @@ module.exports = function(TOKEN, data){
                 }
                 node.style = getStyles(elem);
                 node.child = [];
-                if(igonreChildren(elem)){ // ignore children
+                if(node.name === 'img'){
+                    if(!(IGNORE_TEXT_SELECTORS && elem.webkitMatchesSelector(IGNORE_TEXT_SELECTORS))){
+                        // not ignore text
+                        node.child.push({
+                            name: '#',
+                            text: md5(elem.src)
+                        });
+                    }
+                } else if(igonreChildren(elem)){ // ignore children
                     if(!(IGNORE_TEXT_SELECTORS && elem.webkitMatchesSelector(IGNORE_TEXT_SELECTORS))){
                         // not ignore text
                         node.child.push({

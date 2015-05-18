@@ -113,9 +113,9 @@ function mergeSettings(settings){
             attributeFilters: [ 'id', 'class' ],
             includeSelectors: [],
             excludeSelectors: [],
-            removeSelectors: [],    // remove elements before walk
-            ignoreTextSelectors: [],
-            ignoreChildrenSelectors: [],
+            removeSelectors: [],          // remove elements before walk
+            ignoreTextSelectors: [],      // ignore text nodes of element or `src` attribute of img
+            ignoreChildrenSelectors: [],  //
             root: 'body'
         },
         diff: {
