@@ -1,4 +1,4 @@
-module.exports = function(token, diff, opt){
+module.exports = function(token, diff, lOffset, rOffset, opt){
 
     /**
      * console log debug message
@@ -32,9 +32,13 @@ module.exports = function(token, diff, opt){
      * @param {Object} options
      * @param {HTMLElement} container
      * @param {Boolean} useTitle
+     * @param {Number} offsetX
+     * @param {Number} offsetY
      * @returns {HTMLElement}
      */
-    function highlightElement(rect, options, container, useTitle){
+    function highlightElement(rect, options, container, offsetX, offsetY, useTitle){
+        offsetX = parseInt(offsetX || 0);
+        offsetY = parseInt(offsetY || 0);
         var div = document.createElement('x-diff-div');
         div.style.position = 'absolute';
         div.style.display = 'block';
@@ -55,8 +59,8 @@ module.exports = function(token, diff, opt){
                 div.style[key] = options[key];
             }
         }
-        div.style.left = px(rect[0]);
-        div.style.top = px(rect[1]);
+        div.style.left = px(rect[0] - offsetX);
+        div.style.top = px(rect[1] - offsetY);
         div.style.width = px(rect[2]);
         div.style.height = px(rect[3]);
         container.appendChild(div);
@@ -67,7 +71,7 @@ module.exports = function(token, diff, opt){
     var lenged = document.getElementById('legend');
     for(key in CHANGE_STYLE){
         if(CHANGE_STYLE.hasOwnProperty(key)){
-            div = highlightElement([0, 0, 120, 18], CHANGE_STYLE[key], lenged, true);
+            div = highlightElement([0, 0, 120, 18], CHANGE_STYLE[key], lenged, 0, 0, true);
             div.setAttribute('id', 's-' + key);
             div.style.position = 'static';
             div.style.margin = '5px 8px';
@@ -84,7 +88,6 @@ module.exports = function(token, diff, opt){
         style: 0,
         text: 0
     };
-
     // highlight diffs
     diff.forEach(function(item){
         var node = item.node;
@@ -92,15 +95,15 @@ module.exports = function(token, diff, opt){
         switch (type){
             case CHANGE_TYPE.ADD:
                 count.add++;
-                highlightElement(node.rect, CHANGE_STYLE.ADD, rContainer);
+                highlightElement(node.rect, CHANGE_STYLE.ADD, rContainer, rOffset.x, rOffset.y);
                 break;
             case CHANGE_TYPE.REMOVE:
                 count.remove++;
-                highlightElement(node.rect, CHANGE_STYLE.REMOVE, lContainer);
+                highlightElement(node.rect, CHANGE_STYLE.REMOVE, lContainer, lOffset.x, lOffset.y);
                 break;
             case CHANGE_TYPE.TEXT:
                 count.text++;
-                highlightElement(node.rect, CHANGE_STYLE.TEXT, rContainer);
+                highlightElement(node.rect, CHANGE_STYLE.TEXT, rContainer, rOffset.x, rOffset.y);
                 break;
             default :
                 if(type & CHANGE_TYPE.STYLE){
@@ -109,7 +112,7 @@ module.exports = function(token, diff, opt){
                 if(type & CHANGE_TYPE.TEXT){
                     count.text++;
                 }
-                highlightElement(node.rect, CHANGE_STYLE.STYLE, rContainer);
+                highlightElement(node.rect, CHANGE_STYLE.STYLE, rContainer, rOffset.x, rOffset.y);
                 break;
         }
     });

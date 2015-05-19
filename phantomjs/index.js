@@ -67,7 +67,7 @@ function settings(page, options){
  * @param {webpage} page
  * @param {Function} fn
  * @param {Array} args
- * @returns {Object}
+ * @returns {object}
  */
 function evaluate(page, fn, args){
     var type = typeof fn;
@@ -92,7 +92,7 @@ function evaluate(page, fn, args){
 /**
  * create webpage and bind events
  * @param {string} url
- * @param {Object} options
+ * @param {object} options
  * @param {Function} onload
  */
 function createPage(url, options, onload){
@@ -205,7 +205,7 @@ function createPage(url, options, onload){
 
 /**
  * Constructor
- * @param {Object} options
+ * @param {object} options
  * @constructor
  */
 var M = function(options){
@@ -223,7 +223,7 @@ var M = function(options){
 
 /**
  * get info of the latest save
- * @returns {Object|boolean}
+ * @returns {object|boolean}
  */
 M.prototype.getLatestTree = function(){
     if(fs.exists(this.latest)){
@@ -272,11 +272,12 @@ M.prototype.getRenderOptions = function(){
  * save capture
  * @param {webpage} page
  * @param {string} url
- * @param {string|Object} tree
+ * @param {string|object} tree
+ * @param {array} rect
  * @param {string|number} time
  * @returns {{time: number, dir: string, screenshot: string}}
  */
-M.prototype.save = function(page, url, tree, time){
+M.prototype.save = function(page, url, tree, rect, time){
     time = time || Date.now();
     if(_.is(tree, 'Object')){
         tree = JSON.stringify(tree);
@@ -291,6 +292,12 @@ M.prototype.save = function(page, url, tree, time){
             var elem = document.documentElement;
             elem.style.backgroundColor = '#fff';
         });
+        page.clipRect = {
+            left: rect[0],
+            top: rect[1],
+            width: rect[2],
+            height: rect[3]
+        };
         page.render(screenshot, opt);
         fs.write(dir + '/' + TREE_FILENAME, tree);
         fs.write(dir + '/' + INFO_FILENAME, JSON.stringify({
@@ -314,9 +321,11 @@ M.prototype.save = function(page, url, tree, time){
  * @param {string|number} left
  * @param {string|number} right
  * @param {Array} diff
+ * @param {Array} lOffset
+ * @param {Array} rOffset
  * @param {Function} callback
  */
-M.prototype.highlight = function(left, right, diff, callback){
+M.prototype.highlight = function(left, right, diff, lOffset, rOffset, callback){
     log('diff [' + left + '] width [' + right + ']');
     log('has [' + diff.length + '] changes');
     var render = this.getRenderOptions();
@@ -348,7 +357,7 @@ M.prototype.highlight = function(left, right, diff, callback){
             left: left,
             right: right,
             screenshot: dScreenshot,
-            count: page.evaluate(highlight, self.token, diff, options.diff)
+            count: page.evaluate(highlight, self.token, diff, lOffset, rOffset, options.diff)
         };
         setTimeout(function(){
             page.render(dScreenshot, render);
@@ -375,13 +384,14 @@ M.prototype.capture = function(url, needDiff){
         setTimeout(function(){  // delay
             log('walk tree');
             var right = page.evaluate(walk, self.token, options.walk);    //walk tree
+            var rect = right.rect;
             var json = JSON.stringify(right);
             var latest = self.getLatestTree();
             if(latest.content === json){
                 log('no change');
                 phantom.exit();
             } else if(latest === false || !needDiff) {
-                self.save(page, url, json);
+                self.save(page, url, json, rect);
                 phantom.exit();
             } else {
                 var left = JSON.parse(latest.content);
@@ -389,8 +399,10 @@ M.prototype.capture = function(url, needDiff){
                 var ret = diff(left, right, options.diff);
                 if(ret.length){
                     var now = Date.now();
-                    var info = self.save(page, url, json, now);
-                    self.highlight(latest.time, now, ret, function(diff){
+                    var info = self.save(page, url, json, rect, now);
+                    var lOffset = { x: left.rect[0], y: left.rect[1] };
+                    var rOffset = { x: right.rect[0], y: right.rect[1] };
+                    self.highlight(latest.time, now, ret, lOffset, rOffset, function(diff){
                         info.diff = diff;
                         log(JSON.stringify(info), _.log.INFO);
                         phantom.exit();
@@ -407,7 +419,7 @@ M.prototype.capture = function(url, needDiff){
 /**
  * get tree object by time
  * @param {string|number} time
- * @returns {Object|undefined}
+ * @returns {object|undefined}
  */
 M.prototype.getTree = function(time){
     var file = this.root + '/' + time + '/' + TREE_FILENAME;
@@ -429,7 +441,9 @@ M.prototype.diff = function(left, right){
     if(lTree && rTree){
         var ret = diff(lTree, rTree, options.diff);
         if(ret.length){
-            self.highlight(left, right, ret, function(diff){
+            var lOffset = { x: lTree.rect[0], y: lTree.rect[1] };
+            var rOffset = { x: rTree.rect[0], y: rTree.rect[1] };
+            self.highlight(left, right, ret, lOffset, rOffset, function(diff){
                 var info = {diff: diff};
                 log(JSON.stringify(info), _.log.INFO);
                 phantom.exit();
