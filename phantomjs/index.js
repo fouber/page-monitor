@@ -161,6 +161,7 @@ function createPage(url, options, onload){
     };
     page.onResourceError = function(req){
         log('resource [' + req.url + '] error', _.log.WARNING);
+        page.errorReason = req.errorString;
         callback();
     };
     page.onError = function(msg, trace){
@@ -189,7 +190,7 @@ function createPage(url, options, onload){
         if(status === 'success'){
             callback();
         } else {
-            log('load page error [' + status + ']', _.log.ERROR);
+            log('load page error [' + page.errorReason + ']', _.log.ERROR);
             phantom.exit(1);
         }
     });
