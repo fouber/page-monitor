@@ -65,7 +65,8 @@ function mergeSettings(settings){
         // @see http://phantomjs.org/api/command-line.html
         cli: {
             '--max-disk-cache-size' : '0',
-            '--disk-cache' : 'false'
+            '--disk-cache' : 'false',
+            '--ignore-ssl-errors' : 'yes'
         },
         // webpage settings
         // @see http://phantomjs.org/api/webpage/
