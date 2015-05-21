@@ -126,6 +126,7 @@ function createPage(url, options, onload){
         }
     };
     settings(page, options.page);
+    page.settings.webSecurityEnabled = false;
     page.onLoadStarted = function(){
         if(page.url && page.url !== 'about:blank'){
             count++;

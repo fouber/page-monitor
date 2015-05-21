@@ -188,10 +188,15 @@ module.exports = function(TOKEN, data){
                 node.child = [];
                 if(node.name === 'img'){
                     if(!(IGNORE_TEXT_SELECTORS && elem.webkitMatchesSelector(IGNORE_TEXT_SELECTORS))){
+                        var canvas = document.createElement('canvas');
+                        canvas.width = elem.offsetWidth;
+                        canvas.height = elem.offsetHeight;
+                        var ctx = canvas.getContext('2d');
+                        ctx.drawImage(elem, 0, 0);
                         // not ignore text
                         node.child.push({
                             name: '#',
-                            text: md5(elem.src)
+                            text: md5(canvas.toDataURL())
                         });
                     }
                 } else if(igonreChildren(elem)){ // ignore children
