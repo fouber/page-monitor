@@ -117,7 +117,8 @@ function mergeSettings(settings){
             includeSelectors: [],
             excludeSelectors: [],
             removeSelectors: [],          // remove elements before walk
-            ignoreTextSelectors: [],      // ignore text nodes of element or `src` attribute of img
+            ignoreTextSelectors: [],      // ignore content change of text node or image change
+            ignoreStyleSelectors: [],     // ignore style change
             ignoreChildrenSelectors: [],  //
             root: 'body'
         },

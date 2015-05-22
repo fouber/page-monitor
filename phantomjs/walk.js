@@ -43,6 +43,7 @@ module.exports = function(TOKEN, data){
     var EXCLUDE_SELECTORS = normalizeSelectors(data.excludeSelectors);
     var IGNORE_CHILDREN_SELECTORS = normalizeSelectors(data.ignoreChildrenSelectors);
     var IGNORE_TEXT_SELECTORS = normalizeSelectors(data.ignoreTextSelectors);
+    var IGNORE_STYLE_SELECTORS = normalizeSelectors(data.ignoreStyleSelectors);
     var ROOT = data.root || 'body';
 
     // reg
@@ -184,7 +185,11 @@ module.exports = function(TOKEN, data){
                 if(attr){
                     node.attr = attr;
                 }
-                node.style = getStyles(elem);
+                if(IGNORE_STYLE_SELECTORS && elem.webkitMatchesSelector(IGNORE_STYLE_SELECTORS)){
+                    node.style = '';
+                } else {
+                    node.style = getStyles(elem);
+                }
                 node.child = [];
                 if(node.name === 'img'){
                     if(!(IGNORE_TEXT_SELECTORS && elem.webkitMatchesSelector(IGNORE_TEXT_SELECTORS))){
