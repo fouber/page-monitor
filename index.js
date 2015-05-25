@@ -114,7 +114,6 @@ function mergeSettings(settings){
             ],
             // attributes to mark an element
             attributeFilters: [ 'id', 'class' ],
-            includeSelectors: [],
             excludeSelectors: [],
             removeSelectors: [],          // remove elements before walk
             ignoreTextSelectors: [],      // ignore content change of text node or image change

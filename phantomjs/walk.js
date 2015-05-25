@@ -39,7 +39,7 @@ module.exports = function(TOKEN, data){
     var IGNORE_CHILDREN_ELEMENT = data.ignoreChildrenElements;
     var STYLE_FILTERS = data.styleFilters;
     var ATTR_FILTERS = data.attributeFilters;
-    var INCLUDE_SELECTORS = normalizeSelectors(data.includeSelectors);
+    // var INCLUDE_SELECTORS = normalizeSelectors(data.includeSelectors);
     var EXCLUDE_SELECTORS = normalizeSelectors(data.excludeSelectors);
     var IGNORE_CHILDREN_SELECTORS = normalizeSelectors(data.ignoreChildrenSelectors);
     var IGNORE_TEXT_SELECTORS = normalizeSelectors(data.ignoreTextSelectors);
@@ -154,9 +154,9 @@ module.exports = function(TOKEN, data){
                 if(EXCLUDE_SELECTORS){
                     ret = ret && !elem.webkitMatchesSelector(EXCLUDE_SELECTORS);
                 }
-                if(INCLUDE_SELECTORS){
-                    ret = ret && elem.webkitMatchesSelector(INCLUDE_SELECTORS);
-                }
+                // if(INCLUDE_SELECTORS){
+                //     ret = ret && elem.webkitMatchesSelector(INCLUDE_SELECTORS);
+                // }
                 break;
             case 3:
                 if(IGNORE_TEXT_SELECTORS){
