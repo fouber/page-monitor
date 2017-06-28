@@ -13,7 +13,7 @@
         "diff"
     ],
     "dependencies": {
-        "phantomjs": "~1.9.16"
+        "phantomjs-prebuilt": "^2.1.14"
     },
     "repository": {
         "type": "git",
