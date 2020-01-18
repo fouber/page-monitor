@@ -331,11 +331,12 @@ M.prototype.highlight = function(left, right, diff, lOffset, rOffset, callback){
     log('diff [' + left + '] width [' + right + ']');
     log('has [' + diff.length + '] changes');
     var render = this.getRenderOptions();
-    var lScreenshot = this.root + '/' + left + '/' + SCREENSHOT_FILENAME + '.' + render.ext;
-    var rScreenshot = this.root + '/' + right + '/' + SCREENSHOT_FILENAME + '.' + render.ext;
+    var protocol = 'file://' + (IS_WIN ? '/' : '');
+    var lScreenshot = protocol + this.root + '/' + left + '/' + SCREENSHOT_FILENAME + '.' + render.ext;
+    var rScreenshot = protocol + this.root + '/' + right + '/' + SCREENSHOT_FILENAME + '.' + render.ext;
     var dScreenshot = this.root + '/diff/' + left + '-' + right + '.' + render.ext;
     var html = phantom.libraryPath + '/' + HIGHLIGHT_HTML_FILENAME;
-    var url = 'file://' + (IS_WIN ? '/' : '') + html + '?';
+    var url = protocol + html + '?';
     var opt = {
         page : {
             settings: {

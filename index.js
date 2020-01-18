@@ -9,7 +9,7 @@ var PHANTOMJS_SCRIPT_DIR = path.join(__dirname, 'phantomjs');
 var PHANTOMJS_SCRIPT_FILE = path.join(PHANTOMJS_SCRIPT_DIR, 'index.js');
 var _ = require('./util.js');
 var _exists = fs.existsSync || path.existsSync;
-var phantomjs = require('phantomjs');
+var phantomjs = require('phantomjs-prebuilt');
 var binPath = phantomjs.path;
 
 /**
